@@ -5,6 +5,8 @@ import { ReportAnalysisPage } from "@/features/report-analysis/ReportAnalysisPag
 import { LoanCalculatorPage } from "@/features/loan-calculator/LoanCalculatorPage";
 import { SurroundingsPage } from "@/features/surroundings/SurroundingsPage";
 
+const base = import.meta.env.BASE_URL;
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -16,4 +18,4 @@ export const router = createBrowserRouter([
       { path: "omgivelser", element: <SurroundingsPage /> },
     ],
   },
-]);
+], { basename: base });

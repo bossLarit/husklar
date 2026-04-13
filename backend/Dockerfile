@@ -6,6 +6,7 @@ COPY src/HusKlar.Api/HusKlar.Api.csproj src/HusKlar.Api/
 COPY src/HusKlar.Application/HusKlar.Application.csproj src/HusKlar.Application/
 COPY src/HusKlar.Domain/HusKlar.Domain.csproj src/HusKlar.Domain/
 COPY src/HusKlar.Infrastructure/HusKlar.Infrastructure.csproj src/HusKlar.Infrastructure/
+COPY tests/HusKlar.Application.Tests/HusKlar.Application.Tests.csproj tests/HusKlar.Application.Tests/
 RUN dotnet restore
 
 COPY . .
