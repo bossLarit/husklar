@@ -1,0 +1,87 @@
+import type { ReportAnalysis } from "../../domain/entities/report";
+import { formatDKK } from "@/core/utils/formatCurrency";
+import { RiskBadge } from "./RiskBadge";
+
+interface AnalysisResultProps {
+  analysis: ReportAnalysis;
+}
+
+export function AnalysisResult({ analysis }: AnalysisResultProps) {
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Overall summary */}
+      <div className="rounded-xl border border-border bg-card p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold">Samlet vurdering</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {analysis.summary}
+            </p>
+          </div>
+          <RiskBadge level={analysis.overallRisk} size="lg" />
+        </div>
+        <div className="mt-4 flex gap-6 border-t border-border pt-4">
+          <div>
+            <p className="text-xs text-muted-foreground">
+              Estimeret omkostning
+            </p>
+            <p className="text-lg font-semibold">
+              {formatDKK(analysis.totalCostLow)} –{" "}
+              {formatDKK(analysis.totalCostHigh)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Antal fund</p>
+            <p className="text-lg font-semibold">{analysis.riskItems.length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Individual findings */}
+      <div className="flex flex-col gap-3">
+        <h3 className="text-lg font-semibold">Fund i rapporten</h3>
+        {analysis.riskItems.map((item, index) => (
+          <div
+            key={index}
+            className="rounded-xl border border-border bg-card p-5"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">{item.category}</span>
+                  <RiskBadge level={item.risk} />
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {item.finding}
+                </p>
+                <div className="mt-3 rounded-lg bg-secondary/50 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Hvad betyder det?
+                  </p>
+                  <p className="mt-1 text-sm">{item.plainExplanation}</p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
+              <span>Estimeret udbedring:</span>
+              <span className="font-medium text-foreground">
+                {formatDKK(item.estimatedCostLow)} –{" "}
+                {formatDKK(item.estimatedCostHigh)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Disclaimer */}
+      <div className="rounded-xl border border-border bg-secondary/30 p-4">
+        <p className="text-xs text-muted-foreground">
+          Prisestimaterne er vejledende og baseret på typiske danske
+          håndværkerpriser (2024-niveau inkl. moms). De faktiske omkostninger
+          afhænger af husets størrelse, beliggenhed og den valgte håndværker.
+          Få altid konkrete tilbud fra mindst to håndværkere før du budgetterer.
+        </p>
+      </div>
+    </div>
+  );
+}

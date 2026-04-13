@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  /* HusKlar Design System — Trust teal + Professional blue */
+  /* Font */
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+
+  /* Light mode — teal-based trust palette */
+  --color-background: hsl(166 76% 97%);        /* #F0FDFA — teal-50 */
+  --color-foreground: hsl(176 50% 16%);         /* #134E4A — teal-900 */
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(176 50% 16%);
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(176 50% 16%);
+  --color-primary: hsl(175 84% 32%);            /* #0F766E — teal-700 */
+  --color-primary-foreground: hsl(0 0% 100%);
+  --color-secondary: hsl(166 76% 97%);          /* teal-50 */
+  --color-secondary-foreground: hsl(175 84% 32%);
+  --color-muted: hsl(168 44% 92%);              /* soft teal-100 */
+  --color-muted-foreground: hsl(174 30% 41%);   /* teal-600 */
+  --color-accent: hsl(204 96% 31%);             /* #0369A1 — sky-700 (CTA blue) */
+  --color-accent-foreground: hsl(0 0% 100%);
+  --color-destructive: hsl(0 84% 60%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  --color-border: hsl(168 30% 86%);             /* teal-200 */
+  --color-input: hsl(168 30% 86%);
+  --color-ring: hsl(175 84% 32%);               /* teal-700 */
+
+  /* Risk assessment colours */
+  --color-risk-green: hsl(142 72% 42%);
+  --color-risk-yellow: hsl(45 93% 47%);
+  --color-risk-red: hsl(0 84% 60%);
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --color-background: hsl(180 20% 6%);          /* dark teal-tinted bg */
+  --color-foreground: hsl(166 76% 97%);          /* teal-50 */
+  --color-card: hsl(180 15% 10%);
+  --color-card-foreground: hsl(166 76% 97%);
+  --color-popover: hsl(180 15% 10%);
+  --color-popover-foreground: hsl(166 76% 97%);
+  --color-primary: hsl(167 72% 60%);             /* #14B8A6 — teal-400 */
+  --color-primary-foreground: hsl(180 20% 6%);
+  --color-secondary: hsl(180 12% 15%);
+  --color-secondary-foreground: hsl(166 76% 97%);
+  --color-muted: hsl(180 12% 15%);
+  --color-muted-foreground: hsl(168 20% 55%);
+  --color-accent: hsl(199 89% 48%);             /* sky-500 — CTA blue lighter for dark */
+  --color-accent-foreground: hsl(180 20% 6%);
+  --color-destructive: hsl(0 63% 31%);
+  --color-destructive-foreground: hsl(0 0% 98%);
+  --color-border: hsl(180 10% 18%);
+  --color-input: hsl(180 10% 18%);
+  --color-ring: hsl(167 72% 60%);
+
+  --color-risk-green: hsl(142 72% 50%);
+  --color-risk-yellow: hsl(45 93% 55%);
+  --color-risk-red: hsl(0 84% 55%);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}

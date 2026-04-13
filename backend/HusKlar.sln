@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CFBEFB0E-74B7-47B7-BEA2-276A7603D2FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HusKlar.Api", "src\HusKlar.Api\HusKlar.Api.csproj", "{D264B175-3E89-4414-8DE7-A19C4B553B5C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HusKlar.Application", "src\HusKlar.Application\HusKlar.Application.csproj", "{D8A4C99C-92F0-4B31-9BBB-17B036C9D4D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HusKlar.Domain", "src\HusKlar.Domain\HusKlar.Domain.csproj", "{A49519C5-6CB2-47CA-A304-B14F09CF21A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HusKlar.Infrastructure", "src\HusKlar.Infrastructure\HusKlar.Infrastructure.csproj", "{7CE4F399-ECA9-4184-B27E-4C74BEF3A4A8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3178B24F-A185-4564-89EA-1BBB2A7C4505}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HusKlar.Application.Tests", "tests\HusKlar.Application.Tests\HusKlar.Application.Tests.csproj", "{86DD4243-330B-4BAB-9BC9-DB68B1AA9CC8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D264B175-3E89-4414-8DE7-A19C4B553B5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D264B175-3E89-4414-8DE7-A19C4B553B5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D264B175-3E89-4414-8DE7-A19C4B553B5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D264B175-3E89-4414-8DE7-A19C4B553B5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8A4C99C-92F0-4B31-9BBB-17B036C9D4D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8A4C99C-92F0-4B31-9BBB-17B036C9D4D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8A4C99C-92F0-4B31-9BBB-17B036C9D4D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8A4C99C-92F0-4B31-9BBB-17B036C9D4D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A49519C5-6CB2-47CA-A304-B14F09CF21A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A49519C5-6CB2-47CA-A304-B14F09CF21A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A49519C5-6CB2-47CA-A304-B14F09CF21A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A49519C5-6CB2-47CA-A304-B14F09CF21A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CE4F399-ECA9-4184-B27E-4C74BEF3A4A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CE4F399-ECA9-4184-B27E-4C74BEF3A4A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CE4F399-ECA9-4184-B27E-4C74BEF3A4A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CE4F399-ECA9-4184-B27E-4C74BEF3A4A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86DD4243-330B-4BAB-9BC9-DB68B1AA9CC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86DD4243-330B-4BAB-9BC9-DB68B1AA9CC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86DD4243-330B-4BAB-9BC9-DB68B1AA9CC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86DD4243-330B-4BAB-9BC9-DB68B1AA9CC8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D264B175-3E89-4414-8DE7-A19C4B553B5C} = {CFBEFB0E-74B7-47B7-BEA2-276A7603D2FC}
+		{D8A4C99C-92F0-4B31-9BBB-17B036C9D4D5} = {CFBEFB0E-74B7-47B7-BEA2-276A7603D2FC}
+		{A49519C5-6CB2-47CA-A304-B14F09CF21A0} = {CFBEFB0E-74B7-47B7-BEA2-276A7603D2FC}
+		{7CE4F399-ECA9-4184-B27E-4C74BEF3A4A8} = {CFBEFB0E-74B7-47B7-BEA2-276A7603D2FC}
+		{86DD4243-330B-4BAB-9BC9-DB68B1AA9CC8} = {3178B24F-A185-4564-89EA-1BBB2A7C4505}
+	EndGlobalSection
+EndGlobal

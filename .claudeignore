@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.pfx
+*.p12
+google-services.json
+GoogleService-Info.plist
+key.properties

@@ -1,0 +1,56 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+*.nupkg
+*.snupkg
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Secrets & credentials
+*.jks
+*.keystore
+*.pfx
+*.p12
+google-services.json
+GoogleService-Info.plist
+key.properties
+
+# Logs
+*.log
+logs/
+
+# Claude Code (local config, not project code)
+.claude/commands/
+.claude/skills/
+.claude/plans/
+.claude/projects/
+
+# here.now
+.herenow/
