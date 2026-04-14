@@ -16,7 +16,8 @@ public static class DependencyInjection
         services.AddScoped<IPdfTextExtractor, PdfPigTextExtractor>();
         services.AddHttpClient<IClaudeAnalysisService, ClaudeAnalysisService>();
         services.AddHttpClient<IGeocodingService, DawaGeocodingService>();
-        services.AddHttpClient<ISurroundingsDataService, SurroundingsDataService>();
+        services.AddHttpClient<OverpassClient>();
+        services.AddScoped<ISurroundingsDataService, SurroundingsDataService>();
 
         return services;
     }

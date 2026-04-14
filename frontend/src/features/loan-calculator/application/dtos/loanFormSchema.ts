@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 const positiveNumber = z.number().min(0, "Må ikke være negativt");
-
 const requiredPositive = z.number().positive("Skal være større end 0");
 
 export const loanFormSchema = z.object({
@@ -24,4 +23,7 @@ export const loanFormSchema = z.object({
   monthlyFixedExpenses: positiveNumber.default(0),
 });
 
-export type LoanFormValues = z.infer<typeof loanFormSchema>;
+// Input: before Zod defaults (form state type — fields may be undefined)
+export type LoanFormInput = z.input<typeof loanFormSchema>;
+// Output: after Zod defaults (validated submission type — all fields populated)
+export type LoanFormValues = z.output<typeof loanFormSchema>;

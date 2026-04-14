@@ -1,29 +1,16 @@
 using System.Globalization;
-using System.Net.Http.Json;
-using System.Text.Json;
 using HusKlar.Application.Features.Surroundings.Dtos;
 using HusKlar.Application.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace HusKlar.Infrastructure.Services.ExternalApis;
 
 public class SurroundingsDataService : ISurroundingsDataService
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<SurroundingsDataService> _logger;
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private readonly OverpassClient _overpass;
 
-    // Multiple Overpass mirrors — primary server is often overloaded
-    private static readonly string[] OverpassEndpoints =
-    [
-        "https://overpass.kumi.systems/api/interpreter",
-        "https://overpass-api.de/api/interpreter",
-    ];
-
-    public SurroundingsDataService(HttpClient httpClient, ILogger<SurroundingsDataService> logger)
+    public SurroundingsDataService(OverpassClient overpass)
     {
-        _httpClient = httpClient;
-        _logger = logger;
+        _overpass = overpass;
     }
 
     public async Task<SurroundingsResultDto> GetSurroundingsAsync(
@@ -35,143 +22,97 @@ public class SurroundingsDataService : ISurroundingsDataService
 
         await Task.WhenAll(schoolsTask, transportTask);
 
-        var allSchools = schoolsTask.Result.OrderBy(s => s.DistanceMeters).Take(8).ToList();
+        var schools = schoolsTask.Result.OrderBy(s => s.DistanceMeters).Take(8).ToList();
         var transport = transportTask.Result.OrderBy(t => t.DistanceMeters).Take(8).ToList();
 
-        var transportScore = CalculateScore(transport.Select(t => t.DistanceMeters), 500, 3000);
-        var schoolScore = CalculateScore(allSchools.Select(s => s.DistanceMeters), 500, 3000);
-        // TODO: Støjdata — Miljøstyrelsens støjkort (miljoegis.mim.dk/spatialmap?profile=noise)
-        // bruger en SpatialSuite WMS med ukendt servicename. Mulige løsninger:
-        // 1. Registrer gratis Dataforsyningen-token og brug deres støjzonedata
-        // 2. Brug Overpass til at finde motorveje/hovedveje som proxy for støj
-        // 3. Kontakt Miljøstyrelsen for WMS-adgang
-        var noiseScore = 0;
-        var overall = (int)Math.Round((transportScore + schoolScore) / 2.0);
+        var scores = AreaScoringService.Calculate(transport, schools);
 
         return new SurroundingsResultDto(
             Address: address,
             Coordinates: new CoordinatesDto(latitude, longitude),
-            Schools: allSchools,
+            Schools: schools,
             Transport: transport,
             NoiseLevel: new NoiseLevelDto(null, null, "ukendt"),
-            Scores: new AreaScoresDto(transportScore, schoolScore, noiseScore, overall)
+            Scores: scores
         );
     }
 
-    private async Task<List<SchoolDto>> FetchSchools(double lat, double lng, int radius, CancellationToken ct)
+    private async Task<List<SchoolDto>> FetchSchools(
+        double lat, double lng, int radius, CancellationToken ct)
     {
-        var latStr = lat.ToString(CultureInfo.InvariantCulture);
-        var lngStr = lng.ToString(CultureInfo.InvariantCulture);
-        var query = $"""
-            [out:json][timeout:15];
-            (
-              node["amenity"~"school|kindergarten|college"](around:{radius},{latStr},{lngStr});
-              way["amenity"~"school|kindergarten|college"](around:{radius},{latStr},{lngStr});
-            );
-            out center tags;
-            """;
+        var query = BuildQuery($$"""
+            node["amenity"~"school|kindergarten|college"](around:{{radius}},{{FormatCoord(lat)}},{{FormatCoord(lng)}});
+            way["amenity"~"school|kindergarten|college"](around:{{radius}},{{FormatCoord(lat)}},{{FormatCoord(lng)}});
+            """);
 
-        var pois = await RunOverpassQuery(query, lat, lng, requireName: true, ct);
+        var elements = await _overpass.QueryAsync(query, ct);
 
-        return pois.Select(p =>
-        {
-            var amenity = p.Tags.GetValueOrDefault("amenity", "school");
-            var type = amenity switch
-            {
-                "kindergarten" => "børnehave",
-                "college" => "gymnasium/college",
-                _ => "folkeskole",
-            };
-            return new SchoolDto(p.Name, type, p.DistanceMeters);
-        }).ToList();
+        return elements
+            .Where(e => e.Tags is not null && !string.IsNullOrEmpty(e.Tags.GetValueOrDefault("name")))
+            .Select(e => new SchoolDto(
+                Name: e.Tags!.GetValueOrDefault("name", "Ukendt"),
+                Type: MapSchoolType(e.Tags!.GetValueOrDefault("amenity", "school")),
+                DistanceMeters: (int)Haversine.Distance(lat, lng, e.Lat ?? e.Center?.Lat ?? 0, e.Lon ?? e.Center?.Lon ?? 0)))
+            .ToList();
     }
 
-    private async Task<List<TransportStopDto>> FetchTransport(double lat, double lng, int radius, CancellationToken ct)
+    private async Task<List<TransportStopDto>> FetchTransport(
+        double lat, double lng, int radius, CancellationToken ct)
     {
-        var latStr = lat.ToString(CultureInfo.InvariantCulture);
-        var lngStr = lng.ToString(CultureInfo.InvariantCulture);
-        var query = $"""
-            [out:json][timeout:15];
-            (
-              node["highway"="bus_stop"](around:{radius},{latStr},{lngStr});
-              node["public_transport"~"stop_position|platform|station"](around:{radius},{latStr},{lngStr});
-              node["railway"~"station|halt"](around:{radius},{latStr},{lngStr});
-              way["railway"="station"](around:{radius},{latStr},{lngStr});
-            );
-            out center tags;
-            """;
+        var query = BuildQuery($$"""
+            node["highway"="bus_stop"](around:{{radius}},{{FormatCoord(lat)}},{{FormatCoord(lng)}});
+            node["public_transport"~"stop_position|platform|station"](around:{{radius}},{{FormatCoord(lat)}},{{FormatCoord(lng)}});
+            node["railway"~"station|halt"](around:{{radius}},{{FormatCoord(lat)}},{{FormatCoord(lng)}});
+            way["railway"="station"](around:{{radius}},{{FormatCoord(lat)}},{{FormatCoord(lng)}});
+            """);
 
-        // Don't require name — many Danish bus stops have no name in OSM
-        var pois = await RunOverpassQuery(query, lat, lng, requireName: false, ct);
+        var elements = await _overpass.QueryAsync(query, ct);
 
-        // Deduplicate nearby unnamed stops
-        var grouped = GroupNearbyStops(pois, 80);
+        var stops = elements
+            .Select(e => new TransportStopDto(
+                Name: e.Tags?.GetValueOrDefault("name") ?? "Busstoppested",
+                Type: MapTransportType(e.Tags),
+                DistanceMeters: (int)Haversine.Distance(lat, lng, e.Lat ?? e.Center?.Lat ?? 0, e.Lon ?? e.Center?.Lon ?? 0),
+                Lines: []))
+            .ToList();
 
-        return grouped.Select(p =>
-        {
-            var type = "busstop";
-            if (p.Tags.ContainsKey("railway")) type = "togstation";
-            else if (p.Tags.GetValueOrDefault("public_transport") == "station") type = "station";
-
-            return new TransportStopDto(p.Name, type, p.DistanceMeters, []);
-        }).ToList();
+        return GroupNearby(stops, 80);
     }
 
-    private async Task<List<OverpassPoi>> RunOverpassQuery(
-        string query, double originLat, double originLng,
-        bool requireName, CancellationToken ct)
+    private static string BuildQuery(string body) =>
+        $"""
+        [out:json][timeout:15];
+        (
+        {body}
+        );
+        out center tags;
+        """;
+
+    private static string FormatCoord(double value) =>
+        value.ToString(CultureInfo.InvariantCulture);
+
+    private static string MapSchoolType(string amenity) => amenity switch
     {
-        foreach (var endpoint in OverpassEndpoints)
-        {
-            try
-            {
-                var content = new FormUrlEncodedContent([new("data", query)]);
-                var response = await _httpClient.PostAsync(endpoint, content, ct);
+        "kindergarten" => "børnehave",
+        "college" => "gymnasium/college",
+        _ => "folkeskole",
+    };
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Overpass {Endpoint} returned {Status}", endpoint, response.StatusCode);
-                    continue;
-                }
-
-                var responseText = await response.Content.ReadAsStringAsync(ct);
-
-                // Overpass returns HTML on overload — detect and skip
-                if (responseText.TrimStart().StartsWith('<'))
-                {
-                    _logger.LogWarning("Overpass {Endpoint} returned HTML error, trying next", endpoint);
-                    continue;
-                }
-
-                var result = JsonSerializer.Deserialize<OverpassResponse>(responseText, JsonOptions);
-
-                return (result?.Elements ?? [])
-                    .Where(e => !requireName || !string.IsNullOrEmpty(e.Tags?.GetValueOrDefault("name")))
-                    .Select(e =>
-                    {
-                        var eLat = e.Lat ?? e.Center?.Lat ?? 0;
-                        var eLng = e.Lon ?? e.Center?.Lon ?? 0;
-                        var distance = HaversineDistance(originLat, originLng, eLat, eLng);
-                        var name = e.Tags?.GetValueOrDefault("name")
-                            ?? e.Tags?.GetValueOrDefault("description")
-                            ?? "Busstoppested";
-                        return new OverpassPoi(name, (int)distance, e.Tags ?? []);
-                    })
-                    .ToList();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Overpass {Endpoint} failed", endpoint);
-            }
-        }
-
-        _logger.LogError("All Overpass endpoints failed for query");
-        return [];
+    private static string MapTransportType(Dictionary<string, string>? tags)
+    {
+        if (tags is null) return "busstop";
+        if (tags.ContainsKey("railway")) return "togstation";
+        if (tags.GetValueOrDefault("public_transport") == "station") return "station";
+        return "busstop";
     }
 
-    private static List<OverpassPoi> GroupNearbyStops(List<OverpassPoi> stops, int thresholdMeters)
+    /// <summary>
+    /// Deduplicates stops within a distance threshold, preferring named stops.
+    /// </summary>
+    private static List<TransportStopDto> GroupNearby(
+        List<TransportStopDto> stops, int thresholdMeters)
     {
-        var result = new List<OverpassPoi>();
+        var result = new List<TransportStopDto>();
         var used = new HashSet<int>();
 
         for (var i = 0; i < stops.Count; i++)
@@ -185,41 +126,12 @@ public class SurroundingsDataService : ISurroundingsDataService
                 if (used.Contains(j)) continue;
                 if (Math.Abs(best.DistanceMeters - stops[j].DistanceMeters) > thresholdMeters) continue;
                 used.Add(j);
-                // Prefer the one with a real name
                 if (best.Name == "Busstoppested" && stops[j].Name != "Busstoppested")
                     best = stops[j];
             }
-
             result.Add(best);
         }
 
         return result;
     }
-
-    private static int CalculateScore(IEnumerable<int> distances, int idealDistance, int maxDistance)
-    {
-        var closest = distances.DefaultIfEmpty(maxDistance).Min();
-        if (closest <= idealDistance) return 10;
-        if (closest >= maxDistance) return 2;
-        var ratio = 1.0 - (double)(closest - idealDistance) / (maxDistance - idealDistance);
-        return (int)Math.Round(2 + ratio * 8);
-    }
-
-    private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)
-    {
-        const double R = 6371000;
-        var dLat = ToRad(lat2 - lat1);
-        var dLon = ToRad(lon2 - lon1);
-        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(ToRad(lat1)) * Math.Cos(ToRad(lat2)) *
-                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-        return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-    }
-
-    private static double ToRad(double deg) => deg * Math.PI / 180;
-
-    private record OverpassResponse(List<OverpassElement> Elements);
-    private record OverpassElement(double? Lat, double? Lon, OverpassCenter? Center, Dictionary<string, string>? Tags);
-    private record OverpassCenter(double Lat, double Lon);
-    private record OverpassPoi(string Name, int DistanceMeters, Dictionary<string, string> Tags);
 }

@@ -1,5 +1,6 @@
 using System.Threading.RateLimiting;
 using FluentValidation;
+using HusKlar.Api.Middleware;
 using HusKlar.Application.Common;
 using HusKlar.Infrastructure;
 using Microsoft.AspNetCore.RateLimiting;
@@ -58,6 +59,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
+app.UseMiddleware<ValidationExceptionMiddleware>();
 app.UseCors();
 app.UseRateLimiter();
 app.MapControllers();
