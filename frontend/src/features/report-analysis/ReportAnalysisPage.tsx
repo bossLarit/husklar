@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { getAuthToken } from "@/core/utils/apiClient";
 import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
+import { useMetaDescription } from "@/core/hooks/useMetaDescription";
 import { AccessCodeForm } from "./presentation/components/AccessCodeForm";
 import { PdfUploader } from "./presentation/components/PdfUploader";
 import { AnalysisResult } from "./presentation/components/AnalysisResult";
@@ -8,37 +9,43 @@ import { useUploadReport } from "./presentation/hooks/useUploadReport";
 
 export function ReportAnalysisPage() {
   useDocumentTitle("Rapport-analyse");
+  useMetaDescription(
+    "Upload din tilstandsrapport eller elrapport og få en AI-drevet analyse. Kritiske fejl, omkostningsestimater og forklaringer i et sprog du forstår.",
+  );
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => getAuthToken() !== null,
   );
   const { mutate, data, isPending, error } = useUploadReport();
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
+    <article className="flex flex-col gap-8">
+      <header>
         <h1 className="text-3xl font-semibold">Rapport-analyse</h1>
         <p className="mt-2 text-muted-foreground">
           Upload din tilstandsrapport eller elrapport. AI analyserer indholdet
           og forklarer det i et sprog du forstår.
         </p>
-      </div>
+      </header>
 
       {!isAuthenticated ? (
         <AccessCodeForm onAuthenticated={() => setIsAuthenticated(true)} />
       ) : (
         <div className="grid gap-8 lg:grid-cols-2">
-          <div>
+          <section aria-label="Upload af rapport">
             <PdfUploader
               onUpload={(file, type) => mutate({ file, type })}
               isLoading={isPending}
             />
             {error && (
-              <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
+              <div
+                role="alert"
+                className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-4"
+              >
                 <p className="text-sm text-destructive">{error.message}</p>
               </div>
             )}
-          </div>
-          <div>
+          </section>
+          <section aria-label="Analyseresultat">
             {isPending && <AnalysisSkeleton />}
             {data && !isPending && <AnalysisResult analysis={data} />}
             {!data && !isPending && (
@@ -48,10 +55,10 @@ export function ReportAnalysisPage() {
                 </p>
               </div>
             )}
-          </div>
+          </section>
         </div>
       )}
-    </div>
+    </article>
   );
 }
 

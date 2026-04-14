@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
+import { useMetaDescription } from "@/core/hooks/useMetaDescription";
 import type { LoanFormValues } from "./application/dtos/loanFormSchema";
 import { useLoanCalculation } from "./presentation/hooks/useLoanCalculation";
 import { LoanForm } from "./presentation/components/LoanForm";
@@ -7,24 +8,27 @@ import { LoanResult } from "./presentation/components/LoanResult";
 
 export function LoanCalculatorPage() {
   useDocumentTitle("Låneberegner");
+  useMetaDescription(
+    "Beregn din max belåning, månedlige ydelse og bestå din egen stresstest. Baseret på danske bankkriterier — 3,5x indkomstregel og rådighedsbeløb.",
+  );
   const [formValues, setFormValues] = useState<LoanFormValues | null>(null);
   const result = useLoanCalculation(formValues);
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
+    <article className="flex flex-col gap-8">
+      <header>
         <h1 className="text-3xl font-semibold">Låneberegner</h1>
         <p className="mt-2 text-muted-foreground">
           Beregn din købekraft baseret på danske bankkriterier. Indtast din
           økonomi og se hvad du kan låne.
         </p>
-      </div>
+      </header>
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <div>
+        <section aria-label="Indtast din økonomi">
           <LoanForm onCalculate={setFormValues} />
-        </div>
-        <div>
+        </section>
+        <section aria-label="Beregningsresultat">
           {result && formValues ? (
             <LoanResult
               result={result}
@@ -38,8 +42,8 @@ export function LoanCalculatorPage() {
               </p>
             </div>
           )}
-        </div>
+        </section>
       </div>
-    </div>
+    </article>
   );
 }

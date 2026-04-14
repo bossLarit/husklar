@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
+import { useMetaDescription } from "@/core/hooks/useMetaDescription";
 import { AddressSearch } from "./presentation/components/AddressSearch";
 import { AreaScoreCard } from "./presentation/components/AreaScoreCard";
 import { PoiList } from "./presentation/components/PoiList";
@@ -9,6 +10,9 @@ import { useOmgivelser } from "./presentation/hooks/useOmgivelser";
 
 export function SurroundingsPage() {
   useDocumentTitle("Omgivelsesanalyse");
+  useMetaDescription(
+    "Indtast en adresse og se skoler, børnehaver, offentlig transport og områdescore. Gratis data fra OpenStreetMap og DAWA.",
+  );
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const { data, isFetching, error } = useOmgivelser(selectedAddress);
 
@@ -16,21 +20,26 @@ export function SurroundingsPage() {
   const isLoading = hasSearched && isFetching && !data;
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
+    <article className="flex flex-col gap-8">
+      <header>
         <h1 className="text-3xl font-semibold">Omgivelsesanalyse</h1>
         <p className="mt-2 text-muted-foreground">
           Indtast en adresse og se skoler, transport og tryghed i området.
         </p>
-      </div>
+      </header>
 
-      <AddressSearch onSelect={setSelectedAddress} />
+      <section aria-label="Adressesøgning">
+        <AddressSearch onSelect={setSelectedAddress} />
+      </section>
 
       {isLoading && <SurroundingsLoadingState />}
 
       {error && !isLoading && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
-          <h3 className="font-semibold text-destructive">Kunne ikke hente data</h3>
+        <section
+          role="alert"
+          className="rounded-xl border border-destructive/30 bg-destructive/5 p-6"
+        >
+          <h2 className="font-semibold text-destructive">Kunne ikke hente data</h2>
           <p className="mt-1 text-sm text-muted-foreground">{error.message}</p>
           <button
             type="button"
@@ -39,11 +48,11 @@ export function SurroundingsPage() {
           >
             Prøv igen
           </button>
-        </div>
+        </section>
       )}
 
       {data && !isLoading && (
-        <div className="flex flex-col gap-6">
+        <section aria-label="Analyseresultat" className="flex flex-col gap-6">
           <AreaMap data={data} />
           <div className="grid gap-6 md:grid-cols-2">
             <AreaScoreCard scores={data.scores} />
@@ -53,7 +62,7 @@ export function SurroundingsPage() {
               availability={data.availability}
             />
           </div>
-        </div>
+        </section>
       )}
 
       {!hasSearched && (
@@ -63,6 +72,6 @@ export function SurroundingsPage() {
           </p>
         </div>
       )}
-    </div>
+    </article>
   );
 }

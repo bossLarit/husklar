@@ -13,7 +13,7 @@ export function AnalysisResult({ analysis }: AnalysisResultProps) {
       <div className="rounded-xl border border-border bg-card p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-lg font-semibold">Samlet vurdering</h3>
+            <h2 className="text-lg font-semibold">Samlet vurdering</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {analysis.summary}
             </p>
@@ -39,7 +39,7 @@ export function AnalysisResult({ analysis }: AnalysisResultProps) {
 
       {/* Individual findings */}
       <div className="flex flex-col gap-3">
-        <h3 className="text-lg font-semibold">Fund i rapporten</h3>
+        <h2 className="text-lg font-semibold">Fund i rapporten</h2>
         {analysis.riskItems.map((item, index) => (
           <div
             key={index}

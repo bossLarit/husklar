@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://bosslarit.github.io/husklar/sitemap.xml

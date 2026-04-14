@@ -30,7 +30,7 @@ export function AreaScoreCard({ scores }: AreaScoreCardProps) {
   return (
     <div className="rounded-xl border border-border bg-card p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Områdescore</h3>
+        <h2 className="text-lg font-semibold">Områdescore</h2>
         {scores.overall === null ? (
           <span className="text-sm text-muted-foreground">Ingen data</span>
         ) : (

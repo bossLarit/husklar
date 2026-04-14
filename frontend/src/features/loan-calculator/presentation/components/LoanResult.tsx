@@ -16,7 +16,7 @@ export function LoanResult({ result, propertyPrice, savings }: LoanResultProps) 
     <div className="flex flex-col gap-6">
       {/* Main result */}
       <div className="rounded-xl border border-border bg-card p-6">
-        <h3 className="mb-4 text-lg font-semibold">Dit lån</h3>
+        <h2 className="mb-4 text-lg font-semibold">Dit lån</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <ResultItem
             label="Lånebeløb"
@@ -62,11 +62,11 @@ export function LoanResult({ result, propertyPrice, savings }: LoanResultProps) 
             }`}
           />
           <div>
-            <h3 className="font-semibold">
+            <h2 className="font-semibold">
               {result.stressTestPasses
                 ? "Stresstest bestået"
                 : "Stresstest ikke bestået"}
-            </h3>
+            </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Ved +5% rente ville din månedlige ydelse være{" "}
               <strong>

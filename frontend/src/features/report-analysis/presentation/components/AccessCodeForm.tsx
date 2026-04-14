@@ -15,8 +15,7 @@ export function AccessCodeForm({ onAuthenticated }: AccessCodeFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async () => {
     if (!code.trim()) return;
 
     setIsLoading(true);
@@ -42,16 +41,32 @@ export function AccessCodeForm({ onAuthenticated }: AccessCodeFormProps) {
         <p className="mb-4 text-sm text-muted-foreground">
           Rapport-analysen bruger AI og kræver en adgangskode.
         </p>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+          className="flex flex-col gap-3"
+        >
+          <label htmlFor="access-code" className="sr-only">
+            Adgangskode
+          </label>
           <input
+            id="access-code"
             type="password"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             placeholder="Indtast adgangskode"
-            autoComplete="off"
+            autoComplete="current-password"
+            aria-describedby={error ? "access-code-error" : undefined}
+            aria-invalid={error ? "true" : undefined}
             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm transition-colors duration-200 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1"
           />
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && (
+            <p id="access-code-error" role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
           <button
             type="submit"
             disabled={isLoading || !code.trim()}

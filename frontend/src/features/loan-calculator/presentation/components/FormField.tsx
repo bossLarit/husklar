@@ -30,7 +30,17 @@ export function FormField({ field, register, error }: FormFieldProps) {
           id={field.name}
           type="number"
           step="any"
+          inputMode="decimal"
+          autoComplete="off"
           placeholder={field.placeholder}
+          aria-describedby={
+            error
+              ? `${field.name}-error`
+              : field.hint
+                ? `${field.name}-hint`
+                : undefined
+          }
+          aria-invalid={error ? "true" : undefined}
           {...register(field.name, { valueAsNumber: true })}
           className={`h-10 w-full rounded-md border bg-card px-3 pr-12 text-sm transition-colors duration-200 placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 ${
             error
@@ -43,9 +53,15 @@ export function FormField({ field, register, error }: FormFieldProps) {
         </span>
       </div>
       {field.hint && !error && (
-        <p className="text-xs text-muted-foreground">{field.hint}</p>
+        <p id={`${field.name}-hint`} className="text-xs text-muted-foreground">
+          {field.hint}
+        </p>
       )}
-      {error && <p className="text-xs text-destructive">{error.message}</p>}
+      {error && (
+        <p id={`${field.name}-error`} className="text-xs text-destructive">
+          {error.message}
+        </p>
+      )}
     </div>
   );
 }

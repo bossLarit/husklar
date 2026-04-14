@@ -12,9 +12,15 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+      >
+        Spring til indhold
+      </a>
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
-        <nav className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-3 md:px-6">
-          <Link to="/" className="text-xl font-semibold text-primary">
+        <nav aria-label="Hovednavigation" className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-3 md:px-6">
+          <Link to="/" className="text-xl font-semibold text-primary" aria-label="HusKlar — Til forsiden">
             HusKlar
           </Link>
           <div className="flex items-center gap-6">
@@ -35,7 +41,7 @@ export function Layout() {
           </div>
         </nav>
       </header>
-      <main className="mx-auto max-w-screen-xl px-4 py-8 md:px-6">
+      <main id="main" className="mx-auto max-w-screen-xl px-4 py-8 md:px-6">
         <Outlet />
       </main>
       <footer className="border-t border-border py-6 text-center text-sm text-muted-foreground">
