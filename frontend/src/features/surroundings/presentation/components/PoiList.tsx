@@ -1,59 +1,82 @@
-import type { School, TransportStop } from "../../domain/entities/surroundings";
+import type {
+  DataAvailability,
+  School,
+  TransportStop,
+} from "../../domain/entities/surroundings";
 
 interface PoiListProps {
   schools: School[];
   transport: TransportStop[];
+  availability: DataAvailability;
 }
 
-export function PoiList({ schools, transport }: PoiListProps) {
+export function PoiList({ schools, transport, availability }: PoiListProps) {
   return (
     <div className="flex flex-col gap-4">
-      {/* Schools */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <h4 className="mb-3 text-sm font-semibold">Skoler & institutioner</h4>
-        {schools.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Ingen skoler fundet inden for 5 km.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {schools.map((school, i) => (
-              <li key={i} className="flex items-center justify-between text-sm">
-                <div>
-                  <span className="font-medium">{school.name}</span>
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {school.type}
-                  </span>
-                </div>
-                <span className="text-muted-foreground">
-                  {formatDistance(school.distanceMeters)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <PoiSection
+        title="Skoler & institutioner"
+        items={schools.map((s) => ({
+          name: s.name,
+          type: s.type,
+          distanceMeters: s.distanceMeters,
+        }))}
+        available={availability.schoolsAvailable}
+        emptyMessage="Ingen skoler fundet inden for 5 km."
+      />
+      <PoiSection
+        title="Offentlig transport"
+        items={transport.map((t) => ({
+          name: t.name,
+          type: t.type,
+          distanceMeters: t.distanceMeters,
+        }))}
+        available={availability.transportAvailable}
+        emptyMessage="Ingen stoppesteder fundet inden for 5 km."
+      />
+    </div>
+  );
+}
 
-      {/* Transport */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <h4 className="mb-3 text-sm font-semibold">Offentlig transport</h4>
-        {transport.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Ingen stoppesteder fundet inden for 5 km.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {transport.map((stop, i) => (
-              <li key={i} className="flex items-center justify-between text-sm">
-                <span className="font-medium">{stop.name}</span>
-                <span className="text-muted-foreground">
-                  {formatDistance(stop.distanceMeters)}
+interface PoiItem {
+  name: string;
+  type: string;
+  distanceMeters: number;
+}
+
+interface PoiSectionProps {
+  title: string;
+  items: PoiItem[];
+  available: boolean;
+  emptyMessage: string;
+}
+
+function PoiSection({ title, items, available, emptyMessage }: PoiSectionProps) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <h4 className="mb-3 text-sm font-semibold">{title}</h4>
+      {!available ? (
+        <p className="text-sm text-muted-foreground">
+          Kunne ikke hente data lige nu. Prøv igen om lidt.
+        </p>
+      ) : items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {items.map((item, i) => (
+            <li key={i} className="flex items-center justify-between text-sm">
+              <div>
+                <span className="font-medium">{item.name}</span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  {item.type}
                 </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+              </div>
+              <span className="text-muted-foreground">
+                {formatDistance(item.distanceMeters)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

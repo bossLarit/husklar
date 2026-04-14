@@ -1,13 +1,19 @@
 import { useState } from "react";
+import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
 import { AddressSearch } from "./presentation/components/AddressSearch";
 import { AreaScoreCard } from "./presentation/components/AreaScoreCard";
 import { PoiList } from "./presentation/components/PoiList";
 import { AreaMap } from "./presentation/components/AreaMap";
+import { SurroundingsLoadingState } from "./presentation/components/SurroundingsLoadingState";
 import { useOmgivelser } from "./presentation/hooks/useOmgivelser";
 
 export function SurroundingsPage() {
+  useDocumentTitle("Omgivelsesanalyse");
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
-  const { data, isPending, error } = useOmgivelser(selectedAddress);
+  const { data, isFetching, error } = useOmgivelser(selectedAddress);
+
+  const hasSearched = selectedAddress !== null;
+  const isLoading = hasSearched && isFetching && !data;
 
   return (
     <div className="flex flex-col gap-8">
@@ -20,33 +26,37 @@ export function SurroundingsPage() {
 
       <AddressSearch onSelect={setSelectedAddress} />
 
-      {isPending && (
-        <div className="flex animate-pulse flex-col gap-4">
-          <div className="h-[400px] rounded-xl bg-muted" />
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="h-48 rounded-xl bg-muted" />
-            <div className="h-48 rounded-xl bg-muted" />
-          </div>
+      {isLoading && <SurroundingsLoadingState />}
+
+      {error && !isLoading && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6">
+          <h3 className="font-semibold text-destructive">Kunne ikke hente data</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{error.message}</p>
+          <button
+            type="button"
+            onClick={() => setSelectedAddress(selectedAddress)}
+            className="mt-3 cursor-pointer text-sm font-medium text-primary underline"
+          >
+            Prøv igen
+          </button>
         </div>
       )}
 
-      {error && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-          <p className="text-sm text-destructive">{error.message}</p>
-        </div>
-      )}
-
-      {data && !isPending && (
+      {data && !isLoading && (
         <div className="flex flex-col gap-6">
           <AreaMap data={data} />
           <div className="grid gap-6 md:grid-cols-2">
             <AreaScoreCard scores={data.scores} />
-            <PoiList schools={data.schools} transport={data.transport} />
+            <PoiList
+              schools={data.schools}
+              transport={data.transport}
+              availability={data.availability}
+            />
           </div>
         </div>
       )}
 
-      {!data && !isPending && !error && (
+      {!hasSearched && (
         <div className="flex items-center justify-center rounded-xl border border-dashed border-border p-12">
           <p className="text-sm text-muted-foreground">
             Søg efter en adresse for at se omgivelserne.

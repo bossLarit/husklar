@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="12" fill="#0F766E"/>
+  <!-- House shape -->
+  <path d="M14 30 L32 14 L50 30 L50 50 L14 50 Z" fill="#F0FDFA" stroke="#134E4A" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Door -->
+  <rect x="28" y="38" width="8" height="12" fill="#0F766E"/>
+  <!-- Checkmark overlay -->
+  <circle cx="46" cy="22" r="10" fill="#14B8A6" stroke="#F0FDFA" stroke-width="2"/>
+  <path d="M41 22 L45 26 L51 18" stroke="#F0FDFA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
 
 const features = [
   {
@@ -25,6 +26,7 @@ const features = [
 ] as const;
 
 export function LandingPage() {
+  useDocumentTitle("Din guide til boligkøb");
   return (
     <div className="flex flex-col gap-16 py-8 md:py-16">
       {/* Hero */}

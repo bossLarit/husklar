@@ -16,11 +16,25 @@ export interface TransportStop {
   lines: string[];
 }
 
+/**
+ * Scores are null when data is unavailable (external API failed).
+ * Never display a null score as a number — always "Ingen data" or similar.
+ */
 export interface AreaScores {
-  transport: number;
-  schools: number;
-  noise: number;
-  overall: number;
+  transport: number | null;
+  schools: number | null;
+  noise: number | null;
+  overall: number | null;
+}
+
+/**
+ * Tracks which categories have real data loaded.
+ * False = external API call failed.
+ * True + empty POI list = "nothing found within range" (still valid data).
+ */
+export interface DataAvailability {
+  schoolsAvailable: boolean;
+  transportAvailable: boolean;
 }
 
 export interface SurroundingsResult {
@@ -34,4 +48,5 @@ export interface SurroundingsResult {
     category: string;
   };
   scores: AreaScores;
+  availability: DataAvailability;
 }

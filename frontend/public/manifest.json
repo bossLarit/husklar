@@ -1,0 +1,24 @@
+{
+  "name": "HusKlar",
+  "short_name": "HusKlar",
+  "description": "Din guide til boligkøb i Danmark — AI-rapport-analyse, låneberegner og omgivelsesanalyse.",
+  "start_url": "/husklar/",
+  "display": "standalone",
+  "background_color": "#F0FDFA",
+  "theme_color": "#0F766E",
+  "lang": "da",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "apple-touch-icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "180x180",
+      "purpose": "any"
+    }
+  ]
+}

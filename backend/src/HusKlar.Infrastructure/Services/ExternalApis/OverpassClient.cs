@@ -25,7 +25,11 @@ public class OverpassClient
         _logger = logger;
     }
 
-    public async Task<List<OverpassElement>> QueryAsync(string query, CancellationToken ct)
+    /// <summary>
+    /// Executes an Overpass query. Returns Success=false if all mirrors failed,
+    /// so callers can distinguish "no data available" from "data loaded, nothing found".
+    /// </summary>
+    public async Task<OverpassQueryResult> QueryAsync(string query, CancellationToken ct)
     {
         foreach (var endpoint in Endpoints)
         {
@@ -50,7 +54,7 @@ public class OverpassClient
                 }
 
                 var result = JsonSerializer.Deserialize<OverpassResponse>(responseText, JsonOptions);
-                return result?.Elements ?? [];
+                return new OverpassQueryResult(result?.Elements ?? [], Success: true);
             }
             catch (Exception ex)
             {
@@ -59,9 +63,10 @@ public class OverpassClient
         }
 
         _logger.LogError("All Overpass endpoints failed for query");
-        return [];
+        return new OverpassQueryResult([], Success: false);
     }
 
+    public record OverpassQueryResult(List<OverpassElement> Elements, bool Success);
     public record OverpassResponse(List<OverpassElement> Elements);
     public record OverpassElement(
         double? Lat, double? Lon, OverpassCenter? Center,

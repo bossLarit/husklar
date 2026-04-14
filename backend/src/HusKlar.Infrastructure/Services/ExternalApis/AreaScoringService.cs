@@ -4,7 +4,7 @@ namespace HusKlar.Infrastructure.Services.ExternalApis;
 
 /// <summary>
 /// Pure scoring logic for area quality — distance-based scoring (0-10).
-/// Extracted from SurroundingsDataService to follow Single Responsibility.
+/// Returns null scores when data is unavailable (never a fake "2/10" fallback).
 /// </summary>
 public static class AreaScoringService
 {
@@ -15,32 +15,40 @@ public static class AreaScoringService
 
     public static AreaScoresDto Calculate(
         IEnumerable<TransportStopDto> transport,
-        IEnumerable<SchoolDto> schools)
+        IEnumerable<SchoolDto> schools,
+        DataAvailabilityDto availability)
     {
-        var transportScore = DistanceScore(
-            transport.Select(t => t.DistanceMeters),
-            TransportIdealMeters, TransportMaxMeters);
+        // Only score categories where real data was loaded successfully.
+        // Unavailable data = null, never a fallback number.
+        int? transportScore = availability.TransportAvailable
+            ? DistanceScore(transport.Select(t => t.DistanceMeters), TransportIdealMeters, TransportMaxMeters)
+            : null;
 
-        var schoolScore = DistanceScore(
-            schools.Select(s => s.DistanceMeters),
-            SchoolIdealMeters, SchoolMaxMeters);
+        int? schoolScore = availability.SchoolsAvailable
+            ? DistanceScore(schools.Select(s => s.DistanceMeters), SchoolIdealMeters, SchoolMaxMeters)
+            : null;
 
-        // TODO: Støjdata — Miljøstyrelsens støjkort (miljoegis.mim.dk/spatialmap?profile=noise)
-        // bruger en SpatialSuite WMS med ukendt servicename. Mulige løsninger:
-        // 1. Registrer gratis Dataforsyningen-token og brug deres støjzonedata
-        // 2. Brug Overpass til at finde motorveje/hovedveje som proxy for støj
-        // 3. Kontakt Miljøstyrelsen for WMS-adgang
-        var noiseScore = 0;
+        // TODO: Støjdata — Miljøstyrelsens støjkort
+        // Currently always unavailable (no data source integrated).
+        int? noiseScore = null;
 
-        // Overall excludes noise until real data is available
-        var overall = (int)Math.Round((transportScore + schoolScore) / 2.0);
+        // Overall is average of available categories only. Null if nothing is available.
+        var availableScores = new[] { transportScore, schoolScore, noiseScore }
+            .Where(s => s.HasValue)
+            .Select(s => s!.Value)
+            .ToList();
+
+        int? overall = availableScores.Count > 0
+            ? (int)Math.Round(availableScores.Average())
+            : null;
 
         return new AreaScoresDto(transportScore, schoolScore, noiseScore, overall);
     }
 
     /// <summary>
-    /// Scores 2-10 based on distance to closest POI.
+    /// Scores 2-10 based on distance to closest POI. Only call when data is available.
     /// Closer than ideal = 10, farther than max = 2.
+    /// An empty list means "nothing in range" — legitimately a low score, not missing data.
     /// </summary>
     private static int DistanceScore(
         IEnumerable<int> distances, int idealDistance, int maxDistance)

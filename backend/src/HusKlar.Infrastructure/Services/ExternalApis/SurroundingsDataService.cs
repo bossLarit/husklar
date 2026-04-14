@@ -1,4 +1,5 @@
 using System.Globalization;
+using HusKlar.Application.Common;
 using HusKlar.Application.Features.Surroundings.Dtos;
 using HusKlar.Application.Interfaces;
 
@@ -22,22 +23,34 @@ public class SurroundingsDataService : ISurroundingsDataService
 
         await Task.WhenAll(schoolsTask, transportTask);
 
-        var schools = schoolsTask.Result.OrderBy(s => s.DistanceMeters).Take(8).ToList();
-        var transport = transportTask.Result.OrderBy(t => t.DistanceMeters).Take(8).ToList();
+        var (schools, schoolsAvailable) = schoolsTask.Result;
+        var (transport, transportAvailable) = transportTask.Result;
 
-        var scores = AreaScoringService.Calculate(transport, schools);
+        // Fail loud if BOTH categories are unavailable — no meaningful data to return
+        if (!schoolsAvailable && !transportAvailable)
+        {
+            throw new ExternalServiceUnavailableException("OpenStreetMap/Overpass");
+        }
+
+        var availability = new DataAvailabilityDto(schoolsAvailable, transportAvailable);
+
+        var orderedSchools = schools.OrderBy(s => s.DistanceMeters).Take(8).ToList();
+        var orderedTransport = transport.OrderBy(t => t.DistanceMeters).Take(8).ToList();
+
+        var scores = AreaScoringService.Calculate(orderedTransport, orderedSchools, availability);
 
         return new SurroundingsResultDto(
             Address: address,
             Coordinates: new CoordinatesDto(latitude, longitude),
-            Schools: schools,
-            Transport: transport,
+            Schools: orderedSchools,
+            Transport: orderedTransport,
             NoiseLevel: new NoiseLevelDto(null, null, "ukendt"),
-            Scores: scores
+            Scores: scores,
+            Availability: availability
         );
     }
 
-    private async Task<List<SchoolDto>> FetchSchools(
+    private async Task<(List<SchoolDto> items, bool available)> FetchSchools(
         double lat, double lng, int radius, CancellationToken ct)
     {
         var query = BuildQuery($$"""
@@ -45,18 +58,25 @@ public class SurroundingsDataService : ISurroundingsDataService
             way["amenity"~"school|kindergarten|college"](around:{{radius}},{{FormatCoord(lat)}},{{FormatCoord(lng)}});
             """);
 
-        var elements = await _overpass.QueryAsync(query, ct);
+        var result = await _overpass.QueryAsync(query, ct);
 
-        return elements
+        if (!result.Success)
+        {
+            return ([], available: false);
+        }
+
+        var schools = result.Elements
             .Where(e => e.Tags is not null && !string.IsNullOrEmpty(e.Tags.GetValueOrDefault("name")))
             .Select(e => new SchoolDto(
                 Name: e.Tags!.GetValueOrDefault("name", "Ukendt"),
                 Type: MapSchoolType(e.Tags!.GetValueOrDefault("amenity", "school")),
                 DistanceMeters: (int)Haversine.Distance(lat, lng, e.Lat ?? e.Center?.Lat ?? 0, e.Lon ?? e.Center?.Lon ?? 0)))
             .ToList();
+
+        return (schools, available: true);
     }
 
-    private async Task<List<TransportStopDto>> FetchTransport(
+    private async Task<(List<TransportStopDto> items, bool available)> FetchTransport(
         double lat, double lng, int radius, CancellationToken ct)
     {
         var query = BuildQuery($$"""
@@ -66,9 +86,14 @@ public class SurroundingsDataService : ISurroundingsDataService
             way["railway"="station"](around:{{radius}},{{FormatCoord(lat)}},{{FormatCoord(lng)}});
             """);
 
-        var elements = await _overpass.QueryAsync(query, ct);
+        var result = await _overpass.QueryAsync(query, ct);
 
-        var stops = elements
+        if (!result.Success)
+        {
+            return ([], available: false);
+        }
+
+        var stops = result.Elements
             .Select(e => new TransportStopDto(
                 Name: e.Tags?.GetValueOrDefault("name") ?? "Busstoppested",
                 Type: MapTransportType(e.Tags),
@@ -76,7 +101,7 @@ public class SurroundingsDataService : ISurroundingsDataService
                 Lines: []))
             .ToList();
 
-        return GroupNearby(stops, 80);
+        return (GroupNearby(stops, 80), available: true);
     }
 
     private static string BuildQuery(string body) =>

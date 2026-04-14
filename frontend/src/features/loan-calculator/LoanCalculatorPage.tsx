@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
 import type { LoanFormValues } from "./application/dtos/loanFormSchema";
 import { useLoanCalculation } from "./presentation/hooks/useLoanCalculation";
 import { LoanForm } from "./presentation/components/LoanForm";
 import { LoanResult } from "./presentation/components/LoanResult";
 
 export function LoanCalculatorPage() {
+  useDocumentTitle("Låneberegner");
   const [formValues, setFormValues] = useState<LoanFormValues | null>(null);
   const result = useLoanCalculation(formValues);
 

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { getAuthToken } from "@/core/utils/apiClient";
+import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
 import { AccessCodeForm } from "./presentation/components/AccessCodeForm";
 import { PdfUploader } from "./presentation/components/PdfUploader";
 import { AnalysisResult } from "./presentation/components/AnalysisResult";
 import { useUploadReport } from "./presentation/hooks/useUploadReport";
 
 export function ReportAnalysisPage() {
+  useDocumentTitle("Rapport-analyse");
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => getAuthToken() !== null,
   );

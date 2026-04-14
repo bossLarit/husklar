@@ -44,6 +44,12 @@ public class GetSurroundingsHandler : IRequestHandler<GetSurroundingsQuery, Resu
 
             return Result<SurroundingsResultDto>.Ok(result);
         }
+        catch (ExternalServiceUnavailableException ex)
+        {
+            _logger.LogWarning(ex, "Overpass completely unavailable");
+            return Result<SurroundingsResultDto>.Fail(
+                "Kortdata er midlertidigt utilgængelige (OpenStreetMap-serverne er overbelastede). Prøv igen om et minut.");
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "External API request failed for surroundings");

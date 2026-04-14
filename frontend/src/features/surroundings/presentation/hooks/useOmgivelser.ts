@@ -7,5 +7,6 @@ export function useOmgivelser(address: string | null) {
     queryFn: () => apiSurroundingsRepository.getByAddress(address!),
     enabled: !!address,
     staleTime: 5 * 60_000,
+    retry: 1,
   });
 }
