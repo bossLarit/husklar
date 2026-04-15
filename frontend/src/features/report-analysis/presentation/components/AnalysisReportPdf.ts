@@ -4,6 +4,7 @@ import type {
   RiskItem,
   RiskLevel,
 } from "../../domain/entities/report";
+import { calculateNegotiation } from "../../domain/negotiation";
 import { formatDKK } from "@/core/utils/formatCurrency";
 
 const PALETTE = {
@@ -272,11 +273,332 @@ function findingCard(item: RiskItem, index: number): Content {
   };
 }
 
+function statBox(label: string, value: string, hint: string, emphasized = false): Content {
+  return {
+    margin: [0, 0, 0, 0],
+    table: {
+      widths: ["*"],
+      body: [
+        [
+          {
+            fillColor: emphasized ? "#E6FBF8" : PALETTE.surfaceMuted,
+            margin: [10, 8, 10, 8],
+            stack: [
+              {
+                text: label.toUpperCase(),
+                fontSize: 7,
+                bold: true,
+                color: PALETTE.muted,
+                characterSpacing: 0.5,
+              },
+              {
+                text: value,
+                fontSize: 13,
+                bold: true,
+                color: emphasized ? PALETTE.accent : PALETTE.text,
+                margin: [0, 3, 0, 0],
+              },
+              {
+                text: hint,
+                fontSize: 7,
+                color: PALETTE.muted,
+                margin: [0, 3, 0, 0],
+                lineHeight: 1.3,
+              },
+            ],
+          },
+        ],
+      ],
+    },
+    layout: {
+      hLineWidth: () => 0.5,
+      vLineWidth: () => 0.5,
+      hLineColor: () => (emphasized ? PALETTE.accent : PALETTE.border),
+      vLineColor: () => (emphasized ? PALETTE.accent : PALETTE.border),
+      paddingLeft: () => 0,
+      paddingRight: () => 0,
+      paddingTop: () => 0,
+      paddingBottom: () => 0,
+    },
+  };
+}
+
+function negotiationSection(
+  analysis: ReportAnalysis,
+  options: { askingPrice?: number; daysOnMarket?: number },
+): Content[] {
+  const neg = calculateNegotiation(analysis, options);
+  const blocks: Content[] = [];
+
+  blocks.push({
+    text: "Forhandlings-hjælper",
+    fontSize: 13,
+    bold: true,
+    color: PALETTE.text,
+    margin: [0, 18, 0, 10],
+    pageBreak: "before",
+  });
+
+  blocks.push({
+    text: "Omsæt tilstandsrapporten til konkrete forhandlings-argumenter.",
+    fontSize: 9,
+    color: PALETTE.muted,
+    margin: [0, 0, 0, 10],
+  });
+
+  blocks.push({
+    columns: [
+      statBox("Minimum afslag", formatDKK(neg.minDiscount), "Summen af lave estimater"),
+      { width: 8, text: "" },
+      statBox("Fair afslag", formatDKK(neg.fairDiscount), "Gennemsnit af lave og høje", true),
+      { width: 8, text: "" },
+      statBox("Maks afslag", formatDKK(neg.maxDiscount), "Summen af høje estimater"),
+    ],
+    margin: [0, 0, 0, 10],
+  });
+
+  if (neg.realisticPrice !== undefined && neg.discountPercent !== undefined) {
+    blocks.push({
+      margin: [0, 0, 0, 10],
+      table: {
+        widths: ["*"],
+        body: [
+          [
+            {
+              fillColor: "#E6FBF8",
+              margin: [14, 10, 14, 10],
+              stack: [
+                {
+                  text: "REALISTISK SLUTPRIS",
+                  fontSize: 8,
+                  bold: true,
+                  color: PALETTE.muted,
+                  characterSpacing: 0.6,
+                },
+                {
+                  text: formatDKK(neg.realisticPrice),
+                  fontSize: 18,
+                  bold: true,
+                  color: PALETTE.accent,
+                  margin: [0, 3, 0, 0],
+                },
+                {
+                  text: `Kontantpris ${formatDKK(neg.askingPrice ?? 0)} minus fair afslag — svarer til ${(neg.discountPercent * 100).toFixed(1).replace(".", ",")} %`,
+                  fontSize: 8,
+                  color: PALETTE.muted,
+                  margin: [0, 3, 0, 0],
+                },
+              ],
+            },
+          ],
+        ],
+      },
+      layout: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => PALETTE.accent,
+        vLineColor: () => PALETTE.accent,
+        paddingLeft: () => 0,
+        paddingRight: () => 0,
+        paddingTop: () => 0,
+        paddingBottom: () => 0,
+      },
+    });
+  }
+
+  if (neg.longListing) {
+    blocks.push({
+      margin: [0, 0, 0, 10],
+      table: {
+        widths: ["*"],
+        body: [
+          [
+            {
+              fillColor: "#FEFCE8",
+              margin: [12, 8, 12, 8],
+              stack: [
+                {
+                  text: `Boligen har ligget i ${neg.daysOnMarket} dage`,
+                  fontSize: 10,
+                  bold: true,
+                  color: PALETTE.text,
+                },
+                {
+                  text: "Lang liggetid styrker din forhandlings-position — sælger er typisk mere villig til at forhandle efter 60 dage.",
+                  fontSize: 9,
+                  color: PALETTE.muted,
+                  margin: [0, 2, 0, 0],
+                  lineHeight: 1.3,
+                },
+              ],
+            },
+          ],
+        ],
+      },
+      layout: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0.5,
+        hLineColor: () => "#CA8A04",
+        vLineColor: () => "#CA8A04",
+        paddingLeft: () => 0,
+        paddingRight: () => 0,
+        paddingTop: () => 0,
+        paddingBottom: () => 0,
+      },
+    });
+  }
+
+  if (neg.talkingPoints.length > 0) {
+    blocks.push({
+      text: `Prioriterede forhandlingspunkter (${neg.talkingPoints.length})`,
+      fontSize: 11,
+      bold: true,
+      color: PALETTE.text,
+      margin: [0, 6, 0, 8],
+    });
+
+    for (const pt of neg.talkingPoints) {
+      blocks.push({
+        margin: [0, 0, 0, 8],
+        unbreakable: true,
+        table: {
+          widths: ["*"],
+          body: [
+            [
+              {
+                fillColor: PALETTE.surfaceMuted,
+                margin: [12, 10, 12, 10],
+                stack: [
+                  {
+                    columns: [
+                      {
+                        width: "*",
+                        text: pt.category,
+                        fontSize: 10,
+                        bold: true,
+                        color: PALETTE.text,
+                      },
+                      { width: "auto", stack: [riskBadge(pt.risk)] },
+                    ],
+                  },
+                  {
+                    text: pt.finding,
+                    fontSize: 9,
+                    color: PALETTE.muted,
+                    margin: [0, 4, 0, 0],
+                    lineHeight: 1.35,
+                  },
+                  {
+                    text: [
+                      { text: "Afslag: ", fontSize: 9, color: PALETTE.muted },
+                      {
+                        text: `${formatDKK(pt.minAmount)} – ${formatDKK(pt.maxAmount)}`,
+                        fontSize: 9,
+                        bold: true,
+                        color: PALETTE.accent,
+                      },
+                    ],
+                    margin: [0, 6, 0, 0],
+                  },
+                  {
+                    text: pt.script,
+                    fontSize: 8,
+                    italics: true,
+                    color: PALETTE.muted,
+                    margin: [0, 6, 0, 0],
+                    lineHeight: 1.35,
+                  },
+                ],
+              },
+            ],
+          ],
+        },
+        layout: {
+          hLineWidth: () => 0.5,
+          vLineWidth: () => 0.5,
+          hLineColor: () => PALETTE.border,
+          vLineColor: () => PALETTE.border,
+          paddingLeft: () => 0,
+          paddingRight: () => 0,
+          paddingTop: () => 0,
+          paddingBottom: () => 0,
+        },
+      });
+    }
+  }
+
+  blocks.push({
+    margin: [0, 6, 0, 0],
+    table: {
+      widths: ["*"],
+      body: [
+        [
+          {
+            fillColor: PALETTE.surfaceMuted,
+            margin: [12, 10, 12, 10],
+            stack: [
+              {
+                text: "Generelle forhandlings-tips",
+                fontSize: 10,
+                bold: true,
+                color: PALETTE.text,
+              },
+              {
+                text: [
+                  { text: "Advokatforbehold: ", bold: true, color: PALETTE.text },
+                  { text: "Insistér på det i købsaftalen — giver dig 6 hverdage til at godkende handlen uden gebyr.", color: PALETTE.muted },
+                ],
+                fontSize: 9,
+                margin: [0, 4, 0, 0],
+                lineHeight: 1.35,
+              },
+              {
+                text: [
+                  { text: "Ejerskifteforsikring: ", bold: true, color: PALETTE.text },
+                  { text: "Sælger skal tilbyde standardforsikring og betale halvdelen. Forhandl at sælger betaler hele præmien.", color: PALETTE.muted },
+                ],
+                fontSize: 9,
+                margin: [0, 4, 0, 0],
+                lineHeight: 1.35,
+              },
+              {
+                text: [
+                  { text: "BBR-areal: ", bold: true, color: PALETTE.text },
+                  { text: "Sammenlign mæglerens m² med BBR-arealet på bbr.dk. Afvigelser giver forhandlings-rum.", color: PALETTE.muted },
+                ],
+                fontSize: 9,
+                margin: [0, 4, 0, 0],
+                lineHeight: 1.35,
+              },
+            ],
+          },
+        ],
+      ],
+    },
+    layout: {
+      hLineWidth: () => 0.5,
+      vLineWidth: () => 0.5,
+      hLineColor: () => PALETTE.border,
+      vLineColor: () => PALETTE.border,
+      paddingLeft: () => 0,
+      paddingRight: () => 0,
+      paddingTop: () => 0,
+      paddingBottom: () => 0,
+    },
+  });
+
+  return blocks;
+}
+
 export function buildReportPdfDocDefinition(
   analysis: ReportAnalysis,
+  options: { askingPrice?: number; daysOnMarket?: number } = {},
 ): TDocumentDefinitions {
   const typeLabel = REPORT_TYPE_LABEL[analysis.type];
   const createdAtLabel = formatDate(analysis.createdAt);
+  const includeNegotiation =
+    (typeof options.askingPrice === "number" && options.askingPrice > 0) ||
+    analysis.riskItems.some((item) => item.risk === "red" || item.estimatedCostHigh > 10000);
 
   return {
     pageSize: "A4",
@@ -412,6 +734,8 @@ export function buildReportPdfDocDefinition(
       },
 
       ...analysis.riskItems.map((item, i) => findingCard(item, i)),
+
+      ...(includeNegotiation ? negotiationSection(analysis, options) : []),
 
       {
         margin: [0, 8, 0, 0],

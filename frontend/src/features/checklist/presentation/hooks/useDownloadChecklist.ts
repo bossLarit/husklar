@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
-import type { ReportAnalysis } from "../../domain/entities/report";
+import type { Checklist } from "../../domain/checklistTemplate";
 import {
-  buildReportFileName,
-  buildReportPdfDocDefinition,
-} from "../components/AnalysisReportPdf";
+  buildChecklistFileName,
+  buildChecklistPdfDocDefinition,
+} from "../../application/exportChecklistPdf";
 
 type PdfMakeModule = typeof import("pdfmake/build/pdfmake");
 
@@ -25,29 +25,23 @@ async function loadPdfMake(): Promise<PdfMakeModule> {
   return pdfMakePromise;
 }
 
-export function useDownloadReport() {
+export function useDownloadChecklist() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const downloadReport = useCallback(
-    async (
-      analysis: ReportAnalysis,
-      options: { askingPrice?: number; daysOnMarket?: number } = {},
-    ) => {
-      setIsGenerating(true);
-      setError(null);
-      try {
-        const pdfMake = await loadPdfMake();
-        const doc = buildReportPdfDocDefinition(analysis, options);
-        pdfMake.createPdf(doc).download(buildReportFileName(analysis));
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("Kunne ikke generere PDF"));
-      } finally {
-        setIsGenerating(false);
-      }
-    },
-    [],
-  );
+  const downloadChecklist = useCallback(async (checklist: Checklist) => {
+    setIsGenerating(true);
+    setError(null);
+    try {
+      const pdfMake = await loadPdfMake();
+      const doc = buildChecklistPdfDocDefinition(checklist);
+      pdfMake.createPdf(doc).download(buildChecklistFileName());
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Kunne ikke generere PDF"));
+    } finally {
+      setIsGenerating(false);
+    }
+  }, []);
 
-  return { downloadReport, isGenerating, error };
+  return { downloadChecklist, isGenerating, error };
 }

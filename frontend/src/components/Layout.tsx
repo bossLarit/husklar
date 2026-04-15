@@ -6,6 +6,8 @@ const navLinks = [
   { to: "/laaneberegner", label: "Lån" },
   { to: "/omgivelser", label: "Omgivelser" },
   { to: "/budget", label: "Budget" },
+  { to: "/tjekliste", label: "Tjekliste" },
+  { to: "/omkostninger", label: "Omkostninger" },
 ] as const;
 
 export function Layout() {

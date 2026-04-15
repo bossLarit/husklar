@@ -1,6 +1,8 @@
+import { useState } from "react";
 import type { ReportAnalysis } from "../../domain/entities/report";
 import { formatDKK } from "@/core/utils/formatCurrency";
 import { RiskBadge } from "./RiskBadge";
+import { NegotiationHelper } from "./NegotiationHelper";
 import { useDownloadReport } from "../hooks/useDownloadReport";
 
 interface AnalysisResultProps {
@@ -9,6 +11,8 @@ interface AnalysisResultProps {
 
 export function AnalysisResult({ analysis }: AnalysisResultProps) {
   const { downloadReport, isGenerating, error } = useDownloadReport();
+  const [askingPrice, setAskingPrice] = useState<number | null>(null);
+  const [daysOnMarket, setDaysOnMarket] = useState<number | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -25,7 +29,12 @@ export function AnalysisResult({ analysis }: AnalysisResultProps) {
             <RiskBadge level={analysis.overallRisk} size="lg" />
             <button
               type="button"
-              onClick={() => downloadReport(analysis)}
+              onClick={() =>
+                downloadReport(analysis, {
+                  askingPrice: askingPrice ?? undefined,
+                  daysOnMarket: daysOnMarket ?? undefined,
+                })
+              }
               disabled={isGenerating}
               aria-label="Download rapport som PDF"
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
@@ -134,6 +143,17 @@ export function AnalysisResult({ analysis }: AnalysisResultProps) {
           </div>
         ))}
       </div>
+
+      {/* Negotiation helper */}
+      <NegotiationHelper
+        analysis={analysis}
+        askingPrice={askingPrice}
+        daysOnMarket={daysOnMarket}
+        onChange={({ askingPrice: ap, daysOnMarket: dm }) => {
+          setAskingPrice(ap);
+          setDaysOnMarket(dm);
+        }}
+      />
 
       {/* Disclaimer */}
       <div className="rounded-xl border border-border bg-secondary/30 p-4">
