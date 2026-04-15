@@ -1,4 +1,5 @@
 using HusKlar.Application.Features.ReportAnalysis.Commands.AnalyseReport;
+using HusKlar.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -10,10 +11,14 @@ namespace HusKlar.Api.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ICodesRepository _codes;
+    private readonly string? _ownerCode;
 
-    public ReportsController(IMediator mediator)
+    public ReportsController(IMediator mediator, ICodesRepository codes, IConfiguration configuration)
     {
         _mediator = mediator;
+        _codes = codes;
+        _ownerCode = configuration["REPORT_ACCESS_CODE"];
     }
 
     [HttpPost("upload")]
@@ -24,12 +29,19 @@ public class ReportsController : ControllerBase
         [FromForm] string? type,
         CancellationToken cancellationToken)
     {
-        // Verify bearer token from Authorization header
-        if (!AuthController.IsValidToken(Request.Headers.Authorization))
+        // 1. Access code — via header (X-Access-Code) or form field (code)
+        var accessCode = Request.Headers["X-Access-Code"].ToString();
+        if (string.IsNullOrEmpty(accessCode))
         {
-            return Unauthorized(ApiError("Du skal logge ind for at bruge rapport-analysen."));
+            accessCode = Request.Form["code"].ToString();
         }
 
+        if (string.IsNullOrEmpty(accessCode))
+        {
+            return Unauthorized(ApiError("Adgangskode mangler."));
+        }
+
+        // 2. Cheap input validation (before consuming any codes)
         if (file is null || file.Length == 0)
         {
             return BadRequest(ApiError("Ingen fil uploadet. Vælg venligst en PDF-fil."));
@@ -50,16 +62,62 @@ public class ReportsController : ControllerBase
             return BadRequest(ApiError("Vælg venligst rapporttype: tilstandsrapport eller elrapport."));
         }
 
-        using var stream = file.OpenReadStream();
-        var command = new AnalyseReportCommand(stream, type);
-        var result = await _mediator.Send(command, cancellationToken);
+        // 3. Consume code (or verify owner-code which is never consumed)
+        var isOwner = !string.IsNullOrEmpty(_ownerCode)
+                      && AuthController.IsOwnerCode(accessCode, _ownerCode);
 
-        if (!result.Success)
+        if (!isOwner)
         {
-            return UnprocessableEntity(ApiError(result.Error!));
+            bool consumed;
+            try
+            {
+                consumed = await _codes.TryConsumeAsync(accessCode, cancellationToken);
+            }
+            catch (InvalidOperationException)
+            {
+                // DATABASE_URL not configured — only owner-code works
+                return Unauthorized(ApiError("Ugyldig adgangskode."));
+            }
+
+            if (!consumed)
+            {
+                return Unauthorized(ApiError("Ugyldig eller allerede brugt adgangskode."));
+            }
         }
 
-        return Ok(new { data = result.Data, error = (string?)null, success = true });
+        // 4. Run analysis. Refund on any failure so user keeps their code.
+        try
+        {
+            using var stream = file.OpenReadStream();
+            var command = new AnalyseReportCommand(stream, type);
+            var result = await _mediator.Send(command, cancellationToken);
+
+            if (!result.Success)
+            {
+                await RefundIfNeededAsync(isOwner, accessCode);
+                return UnprocessableEntity(ApiError(result.Error!));
+            }
+
+            return Ok(new { data = result.Data, error = (string?)null, success = true });
+        }
+        catch
+        {
+            await RefundIfNeededAsync(isOwner, accessCode);
+            throw;
+        }
+    }
+
+    private async Task RefundIfNeededAsync(bool isOwner, string accessCode)
+    {
+        if (isOwner) return;
+        try
+        {
+            await _codes.RefundAsync(accessCode, CancellationToken.None);
+        }
+        catch
+        {
+            // Best-effort refund; don't mask the original error.
+        }
     }
 
     private static object ApiError(string message) =>

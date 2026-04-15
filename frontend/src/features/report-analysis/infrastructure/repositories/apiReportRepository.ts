@@ -6,7 +6,7 @@ export const apiReportRepository = {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("type", type);
-    // Auth token is added automatically by apiClient via Authorization header
+    // Access code is added automatically by apiClient via X-Access-Code header
     return apiPost<ReportAnalysis>("/api/reports/upload", formData);
   },
 

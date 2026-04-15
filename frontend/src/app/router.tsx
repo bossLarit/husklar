@@ -7,6 +7,7 @@ import { SurroundingsPage } from "@/features/surroundings/SurroundingsPage";
 import { BudgetPage } from "@/features/budget/BudgetPage";
 import { ChecklistPage } from "@/features/checklist/ChecklistPage";
 import { AnnualCostsPage } from "@/features/annual-costs/AnnualCostsPage";
+import { AdminPage } from "@/features/admin/AdminPage";
 
 const base = import.meta.env.BASE_URL;
 
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
       { path: "budget", element: <BudgetPage /> },
       { path: "tjekliste", element: <ChecklistPage /> },
       { path: "omkostninger", element: <AnnualCostsPage /> },
+      { path: "admin", element: <AdminPage /> },
     ],
   },
 ], { basename: base });

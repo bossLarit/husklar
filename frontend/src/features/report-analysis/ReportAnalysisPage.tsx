@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getAuthToken } from "@/core/utils/apiClient";
+import { getAccessCode } from "@/core/utils/apiClient";
 import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
 import { useMetaDescription } from "@/core/hooks/useMetaDescription";
 import { AccessCodeForm } from "./presentation/components/AccessCodeForm";
@@ -13,7 +13,7 @@ export function ReportAnalysisPage() {
     "Upload din tilstandsrapport eller elrapport og få en AI-drevet analyse. Kritiske fejl, omkostningsestimater og forklaringer i et sprog du forstår.",
   );
   const [isAuthenticated, setIsAuthenticated] = useState(
-    () => getAuthToken() !== null,
+    () => getAccessCode() !== null,
   );
   const { mutate, data, isPending, error } = useUploadReport();
 

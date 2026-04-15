@@ -3,15 +3,15 @@ import { AppError } from "../errors/AppError";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
-// Token stored in memory only — never localStorage (per api-security.md)
-let authToken: string | null = null;
+// Access code stored in memory only — never localStorage (per api-security.md)
+let accessCode: string | null = null;
 
-export function setAuthToken(token: string | null) {
-  authToken = token;
+export function setAccessCode(code: string | null) {
+  accessCode = code;
 }
 
-export function getAuthToken(): string | null {
-  return authToken;
+export function getAccessCode(): string | null {
+  return accessCode;
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
@@ -41,19 +41,19 @@ export async function apiPost<T>(
 
 function buildHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
-  if (authToken) {
-    headers["Authorization"] = `Bearer ${authToken}`;
+  if (accessCode) {
+    headers["X-Access-Code"] = accessCode;
   }
   return headers;
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
   if (response.status === 401) {
-    // Per api-security.md: clear token on auth failure
-    authToken = null;
+    // Per api-security.md: clear code on auth failure
+    accessCode = null;
     const errorBody = (await response.json().catch(() => null)) as ApiResponse<unknown> | null;
     throw new AppError(
-      errorBody?.error ?? "Ikke autoriseret — log venligst ind igen.",
+      errorBody?.error ?? "Ikke autoriseret — indtast din adgangskode.",
       "UNAUTHORIZED",
       401,
     );
