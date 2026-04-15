@@ -62,6 +62,17 @@ public class ReportsController : ControllerBase
             return BadRequest(ApiError("Vælg venligst rapporttype: tilstandsrapport eller elrapport."));
         }
 
+        // Magic-bytes check — ContentType is attacker-controlled, so verify %PDF signature.
+        await using (var peek = file.OpenReadStream())
+        {
+            var header = new byte[4];
+            var read = await peek.ReadAsync(header.AsMemory(0, 4), cancellationToken);
+            if (read < 4 || header[0] != 0x25 || header[1] != 0x50 || header[2] != 0x44 || header[3] != 0x46)
+            {
+                return BadRequest(ApiError("Filen er ikke en gyldig PDF."));
+            }
+        }
+
         // 3. Consume code (or verify owner-code which is never consumed)
         var isOwner = !string.IsNullOrEmpty(_ownerCode)
                       && AuthController.IsOwnerCode(accessCode, _ownerCode);
