@@ -10,6 +10,7 @@ namespace HusKlar.Api.Controllers;
 public class AdminController : ControllerBase
 {
     private const int MaxCodesPerRequest = 50;
+    private const int MaxNoteLength = 200;
 
     private readonly string? _masterPassword;
     private readonly ICodesRepository _codes;
@@ -56,6 +57,10 @@ public class AdminController : ControllerBase
         }
 
         var note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
+        if (note is { Length: > MaxNoteLength })
+        {
+            return BadRequest(ApiError($"Note må være maks {MaxNoteLength} tegn."));
+        }
 
         try
         {

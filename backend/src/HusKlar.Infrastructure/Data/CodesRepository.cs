@@ -59,10 +59,12 @@ public class CodesRepository : ICodesRepository
         await using var conn = new NpgsqlConnection(_connectionString);
         await conn.OpenAsync(cancellationToken);
 
+        // WHERE is_used = TRUE makes the refund idempotent: calling refund on an already-free
+        // code is a no-op instead of silently "un-freeing" what was never consumed.
         const string sql = @"
             UPDATE codes
             SET is_used = FALSE, used_at = NULL
-            WHERE code = @code";
+            WHERE code = @code AND is_used = TRUE";
 
         await using var cmd = new NpgsqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("@code", code);
