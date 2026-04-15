@@ -1,12 +1,15 @@
 import type { ReportAnalysis } from "../../domain/entities/report";
 import { formatDKK } from "@/core/utils/formatCurrency";
 import { RiskBadge } from "./RiskBadge";
+import { useDownloadReport } from "../hooks/useDownloadReport";
 
 interface AnalysisResultProps {
   analysis: ReportAnalysis;
 }
 
 export function AnalysisResult({ analysis }: AnalysisResultProps) {
+  const { downloadReport, isGenerating, error } = useDownloadReport();
+
   return (
     <div className="flex flex-col gap-6">
       {/* Overall summary */}
@@ -18,7 +21,66 @@ export function AnalysisResult({ analysis }: AnalysisResultProps) {
               {analysis.summary}
             </p>
           </div>
-          <RiskBadge level={analysis.overallRisk} size="lg" />
+          <div className="flex flex-col items-end gap-3">
+            <RiskBadge level={analysis.overallRisk} size="lg" />
+            <button
+              type="button"
+              onClick={() => downloadReport(analysis)}
+              disabled={isGenerating}
+              aria-label="Download rapport som PDF"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isGenerating ? (
+                <>
+                  <svg
+                    className="h-4 w-4 animate-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      className="opacity-25"
+                    />
+                    <path
+                      d="M12 2a10 10 0 0 1 10 10"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  Genererer…
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Download PDF
+                </>
+              )}
+            </button>
+            {error && (
+              <p className="text-xs text-risk-red" role="alert">
+                Kunne ikke generere PDF
+              </p>
+            )}
+          </div>
         </div>
         <div className="mt-4 flex gap-6 border-t border-border pt-4">
           <div>
