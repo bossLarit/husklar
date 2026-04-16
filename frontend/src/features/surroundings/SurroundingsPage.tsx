@@ -3,6 +3,7 @@ import { useDocumentTitle } from "@/core/hooks/useDocumentTitle";
 import { useMetaDescription } from "@/core/hooks/useMetaDescription";
 import { AddressSearch } from "./presentation/components/AddressSearch";
 import { AreaScoreCard } from "./presentation/components/AreaScoreCard";
+import { CrimeStatsCard } from "./presentation/components/CrimeStatsCard";
 import { PoiList } from "./presentation/components/PoiList";
 import { AreaMap } from "./presentation/components/AreaMap";
 import { SurroundingsLoadingState } from "./presentation/components/SurroundingsLoadingState";
@@ -55,10 +56,18 @@ export function SurroundingsPage() {
         <section aria-label="Analyseresultat" className="flex flex-col gap-6">
           <AreaMap data={data} />
           <div className="grid gap-6 md:grid-cols-2">
-            <AreaScoreCard scores={data.scores} />
+            <div className="flex flex-col gap-6">
+              <AreaScoreCard scores={data.scores} />
+              <CrimeStatsCard
+                crime={data.crime}
+                available={data.availability.crimeAvailable}
+              />
+            </div>
             <PoiList
               schools={data.schools}
               transport={data.transport}
+              shops={data.shops}
+              natureAreas={data.natureAreas}
               availability={data.availability}
             />
           </div>

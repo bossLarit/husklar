@@ -7,4 +7,4 @@ public interface IGeocodingService
 }
 
 public record AddressSuggestion(string Text, string Id);
-public record GeocodedAddress(string FullAddress, double Latitude, double Longitude);
+public record GeocodedAddress(string FullAddress, double Latitude, double Longitude, string? MunicipalityCode = null);

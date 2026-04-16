@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddHttpClient<IClaudeAnalysisService, ClaudeAnalysisService>();
         services.AddHttpClient<IGeocodingService, DawaGeocodingService>();
         services.AddHttpClient<OverpassClient>();
+        services.AddHttpClient<ICrimeStatisticsService, StatBankCrimeService>();
         services.AddScoped<ISurroundingsDataService, SurroundingsDataService>();
 
         var databaseUrl = configuration["DATABASE_URL"];

@@ -7,11 +7,19 @@ interface AreaScoreCardProps {
 interface ScoreLabel {
   key: keyof Omit<AreaScores, "overall" | "noise">;
   label: string;
+  helpText?: string;
 }
 
 const scoreLabels: ScoreLabel[] = [
   { key: "transport", label: "Transport" },
   { key: "schools", label: "Skoler & institutioner" },
+  { key: "shopping", label: "Indkøbsmulighed" },
+  { key: "nature", label: "Naturområder" },
+  {
+    key: "crime",
+    label: "Kriminalitet",
+    helpText: "Kommuneniveau — ikke dit nærområde",
+  },
 ];
 
 function scoreColor(score: number): string {
@@ -40,19 +48,33 @@ export function AreaScoreCard({ scores }: AreaScoreCardProps) {
         )}
       </div>
       <div className="flex flex-col gap-4">
-        {scoreLabels.map(({ key, label }) => (
-          <ScoreRow key={key} label={label} score={scores[key]} />
+        {scoreLabels.map(({ key, label, helpText }) => (
+          <ScoreRow
+            key={key}
+            label={label}
+            score={scores[key]}
+            helpText={helpText}
+          />
         ))}
       </div>
       <p className="mt-4 text-xs text-muted-foreground">
         Score baseret på afstand til nærmeste faciliteter via OpenStreetMap.
-        Støjdata er ikke tilgængeligt endnu.
+        Kriminalitet vises på kommuneniveau via Danmarks Statistik. Støjdata er
+        ikke tilgængeligt endnu.
       </p>
     </div>
   );
 }
 
-function ScoreRow({ label, score }: { label: string; score: number | null }) {
+function ScoreRow({
+  label,
+  score,
+  helpText,
+}: {
+  label: string;
+  score: number | null;
+  helpText?: string;
+}) {
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-sm">
@@ -73,6 +95,9 @@ function ScoreRow({ label, score }: { label: string; score: number | null }) {
           />
         )}
       </div>
+      {helpText && (
+        <p className="mt-1 text-xs text-muted-foreground">{helpText}</p>
+      )}
     </div>
   );
 }

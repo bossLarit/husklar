@@ -40,7 +40,8 @@ public class GetSurroundingsHandler : IRequestHandler<GetSurroundingsQuery, Resu
                 geocoded.FullAddress, geocoded.Latitude, geocoded.Longitude);
 
             var result = await _surroundings.GetSurroundingsAsync(
-                geocoded.Latitude, geocoded.Longitude, geocoded.FullAddress, cancellationToken);
+                geocoded.Latitude, geocoded.Longitude, geocoded.FullAddress,
+                geocoded.MunicipalityCode, cancellationToken);
 
             return Result<SurroundingsResultDto>.Ok(result);
         }

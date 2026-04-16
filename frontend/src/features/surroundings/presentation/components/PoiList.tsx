@@ -1,37 +1,55 @@
 import type {
   DataAvailability,
+  NatureArea,
   School,
+  Shop,
   TransportStop,
 } from "../../domain/entities/surroundings";
 
 interface PoiListProps {
   schools: School[];
   transport: TransportStop[];
+  shops: Shop[];
+  natureAreas: NatureArea[];
   availability: DataAvailability;
 }
 
-export function PoiList({ schools, transport, availability }: PoiListProps) {
+export function PoiList({
+  schools,
+  transport,
+  shops,
+  natureAreas,
+  availability,
+}: PoiListProps) {
   return (
     <div className="flex flex-col gap-4">
       <PoiSection
         title="Skoler & institutioner"
-        items={schools.map((s) => ({
-          name: s.name,
-          type: s.type,
-          distanceMeters: s.distanceMeters,
-        }))}
+        items={schools}
         available={availability.schoolsAvailable}
         emptyMessage="Ingen skoler fundet inden for 5 km."
       />
       <PoiSection
         title="Offentlig transport"
-        items={transport.map((t) => ({
-          name: t.name,
-          type: t.type,
-          distanceMeters: t.distanceMeters,
+        items={transport.map(({ name, type, distanceMeters }) => ({
+          name,
+          type,
+          distanceMeters,
         }))}
         available={availability.transportAvailable}
         emptyMessage="Ingen stoppesteder fundet inden for 5 km."
+      />
+      <PoiSection
+        title="Indkøbsmuligheder"
+        items={shops}
+        available={availability.shoppingAvailable}
+        emptyMessage="Ingen butikker fundet inden for 5 km."
+      />
+      <PoiSection
+        title="Naturområder"
+        items={natureAreas}
+        available={availability.natureAvailable}
+        emptyMessage="Ingen grønne områder fundet inden for 5 km."
       />
     </div>
   );

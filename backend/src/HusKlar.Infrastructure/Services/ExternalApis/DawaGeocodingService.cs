@@ -43,10 +43,10 @@ public class DawaGeocodingService : IGeocodingService
         var first = results.FirstOrDefault();
         if (first is null) return null;
 
-        return new GeocodedAddress(first.Betegnelse, first.Y, first.X);
+        return new GeocodedAddress(first.Betegnelse, first.Y, first.X, first.Kommunekode);
     }
 
     private record DawaAutocompleteResult(string Tekst, DawaAutocompleteAdresse? Adresse);
     private record DawaAutocompleteAdresse(string Id);
-    private record DawaAddressResult(string Betegnelse, double X, double Y);
+    private record DawaAddressResult(string Betegnelse, double X, double Y, string? Kommunekode);
 }

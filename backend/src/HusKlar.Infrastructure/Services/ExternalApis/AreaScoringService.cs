@@ -1,4 +1,5 @@
 using HusKlar.Application.Features.Surroundings.Dtos;
+using HusKlar.Application.Interfaces;
 
 namespace HusKlar.Infrastructure.Services.ExternalApis;
 
@@ -12,14 +13,19 @@ public static class AreaScoringService
     private const int TransportMaxMeters = 3000;
     private const int SchoolIdealMeters = 500;
     private const int SchoolMaxMeters = 3000;
+    private const int ShoppingIdealMeters = 500;
+    private const int ShoppingMaxMeters = 3000;
+    private const int NatureIdealMeters = 800;
+    private const int NatureMaxMeters = 3000;
 
     public static AreaScoresDto Calculate(
         IEnumerable<TransportStopDto> transport,
         IEnumerable<SchoolDto> schools,
+        IEnumerable<ShopDto> shops,
+        IEnumerable<NatureAreaDto> nature,
+        CrimeStatisticsResult? crime,
         DataAvailabilityDto availability)
     {
-        // Only score categories where real data was loaded successfully.
-        // Unavailable data = null, never a fallback number.
         int? transportScore = availability.TransportAvailable
             ? DistanceScore(transport.Select(t => t.DistanceMeters), TransportIdealMeters, TransportMaxMeters)
             : null;
@@ -28,12 +34,22 @@ public static class AreaScoringService
             ? DistanceScore(schools.Select(s => s.DistanceMeters), SchoolIdealMeters, SchoolMaxMeters)
             : null;
 
-        // TODO: Støjdata — Miljøstyrelsens støjkort
-        // Currently always unavailable (no data source integrated).
+        int? shoppingScore = availability.ShoppingAvailable
+            ? DistanceScore(shops.Select(s => s.DistanceMeters), ShoppingIdealMeters, ShoppingMaxMeters)
+            : null;
+
+        int? natureScore = availability.NatureAvailable
+            ? DistanceScore(nature.Select(n => n.DistanceMeters), NatureIdealMeters, NatureMaxMeters)
+            : null;
+
+        int? crimeScore = availability.CrimeAvailable && crime is not null
+            ? CrimeScore(crime.BurglariesPerThousand)
+            : null;
+
+        // TODO: Støjdata — Miljøstyrelsens støjkort (currently always unavailable)
         int? noiseScore = null;
 
-        // Overall is average of available categories only. Null if nothing is available.
-        var availableScores = new[] { transportScore, schoolScore, noiseScore }
+        var availableScores = new[] { transportScore, schoolScore, shoppingScore, natureScore, crimeScore, noiseScore }
             .Where(s => s.HasValue)
             .Select(s => s!.Value)
             .ToList();
@@ -42,7 +58,7 @@ public static class AreaScoringService
             ? (int)Math.Round(availableScores.Average())
             : null;
 
-        return new AreaScoresDto(transportScore, schoolScore, noiseScore, overall);
+        return new AreaScoresDto(transportScore, schoolScore, shoppingScore, natureScore, crimeScore, noiseScore, overall);
     }
 
     /// <summary>
@@ -57,6 +73,19 @@ public static class AreaScoringService
         if (closest <= idealDistance) return 10;
         if (closest >= maxDistance) return 2;
         var ratio = 1.0 - (double)(closest - idealDistance) / (maxDistance - idealDistance);
+        return (int)Math.Round(2 + ratio * 8);
+    }
+
+    /// <summary>
+    /// Scores 2-10 based on burglaries per 1000 inhabitants in the municipality.
+    /// Lower crime = higher score. Calibrated against typical Danish municipality range (~2-12/1000).
+    /// TODO: Calibrate thresholds against real DST data for fx København, Lemvig, Gentofte before production.
+    /// </summary>
+    private static int CrimeScore(double burglariesPerThousand)
+    {
+        if (burglariesPerThousand <= 3) return 10;
+        if (burglariesPerThousand >= 10) return 2;
+        var ratio = 1.0 - (burglariesPerThousand - 3) / 7.0;
         return (int)Math.Round(2 + ratio * 8);
     }
 }
