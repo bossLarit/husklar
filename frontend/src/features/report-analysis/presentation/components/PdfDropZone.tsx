@@ -35,28 +35,36 @@ export function PdfDropZone({ selectedFile, onFileSelected }: PdfDropZoneProps) 
     [onFileSelected],
   );
 
+  const openPicker = useCallback(() => inputRef.current?.click(), []);
+
   return (
     <div
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
       onDragOver={handleDrag}
       onDrop={handleDrop}
-      onClick={() => inputRef.current?.click()}
-      className={`flex cursor-pointer flex-col items-center gap-3 rounded-xl border-2 border-dashed p-8 text-center transition-colors duration-200 ${
+      className={`rounded-xl border-2 border-dashed transition-colors duration-200 ${
         dragActive
           ? "border-primary bg-primary/5"
           : "border-border hover:border-primary/40"
       }`}
     >
-      <UploadIcon />
-      <div>
-        <p className="text-sm font-medium">
-          {selectedFile
-            ? selectedFile.name
-            : "Træk din PDF hertil eller klik for at vælge"}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">PDF, maks. 10 MB</p>
-      </div>
+      <button
+        type="button"
+        onClick={openPicker}
+        aria-label="Vælg PDF-fil eller træk og slip her"
+        className="flex w-full cursor-pointer flex-col items-center gap-3 rounded-xl p-8 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      >
+        <UploadIcon />
+        <div>
+          <p className="text-sm font-medium">
+            {selectedFile
+              ? selectedFile.name
+              : "Træk din PDF hertil eller klik for at vælge"}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">PDF, maks. 10 MB</p>
+        </div>
+      </button>
       <input
         ref={inputRef}
         type="file"

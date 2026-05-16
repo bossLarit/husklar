@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import type { BoligType, CostInputs } from "../../domain/costCalculation";
 import { BOLIG_TYPE_LABEL, SATSER } from "../../domain/costCalculation";
 
@@ -179,9 +179,10 @@ function NumberField({
   hint,
   onChange,
 }: NumberFieldProps) {
+  const inputId = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium">
+      <label htmlFor={inputId} className="text-sm font-medium">
         {label}
         {optional && (
           <span className="ml-1 text-xs text-muted-foreground">(valgfri)</span>
@@ -189,6 +190,7 @@ function NumberField({
       </label>
       <div className="relative">
         <input
+          id={inputId}
           type="number"
           inputMode="numeric"
           min={0}

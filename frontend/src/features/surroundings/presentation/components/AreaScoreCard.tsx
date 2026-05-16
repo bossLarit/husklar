@@ -1,4 +1,5 @@
 import type { AreaScores } from "../../domain/entities/surroundings";
+import { AlertTriangleIcon, CheckCircleIcon, XCircleIcon } from "@/components/icons";
 
 interface AreaScoreCardProps {
   scores: AreaScores;
@@ -34,6 +35,12 @@ function scoreBarColor(score: number): string {
   return "bg-risk-red";
 }
 
+function scoreLevel(score: number): { label: string; Icon: typeof CheckCircleIcon } {
+  if (score >= 8) return { label: "God score", Icon: CheckCircleIcon };
+  if (score >= 5) return { label: "Middel score", Icon: AlertTriangleIcon };
+  return { label: "Lav score", Icon: XCircleIcon };
+}
+
 export function AreaScoreCard({ scores }: AreaScoreCardProps) {
   return (
     <div className="rounded-xl border border-border bg-card p-6">
@@ -42,9 +49,18 @@ export function AreaScoreCard({ scores }: AreaScoreCardProps) {
         {scores.overall === null ? (
           <span className="text-sm text-muted-foreground">Ingen data</span>
         ) : (
-          <span className={`text-3xl font-bold ${scoreColor(scores.overall)}`}>
-            {scores.overall}/10
-          </span>
+          (() => {
+            const { label, Icon } = scoreLevel(scores.overall);
+            return (
+              <span className={`flex items-center gap-2 text-3xl font-bold ${scoreColor(scores.overall)}`}>
+                <Icon className="h-6 w-6" />
+                <span>
+                  {scores.overall}/10
+                  <span className="sr-only"> — {label}</span>
+                </span>
+              </span>
+            );
+          })()
         )}
       </div>
       <div className="flex flex-col gap-4">
@@ -82,9 +98,18 @@ function ScoreRow({
         {score === null ? (
           <span className="text-xs text-muted-foreground">Ingen data</span>
         ) : (
-          <span className={`font-semibold ${scoreColor(score)}`}>
-            {score}/10
-          </span>
+          (() => {
+            const { label: levelLabel, Icon } = scoreLevel(score);
+            return (
+              <span className={`flex items-center gap-1.5 font-semibold ${scoreColor(score)}`}>
+                <Icon className="h-4 w-4" />
+                <span>
+                  {score}/10
+                  <span className="sr-only"> — {levelLabel}</span>
+                </span>
+              </span>
+            );
+          })()
         )}
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-muted">

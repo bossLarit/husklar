@@ -60,7 +60,7 @@ export function AdminPage() {
           />
         </label>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label className="flex flex-col gap-1.5">
             <span className="text-sm font-medium">Antal koder</span>
             <input
@@ -124,6 +124,7 @@ export function AdminPage() {
             <button
               type="button"
               onClick={() => copyToClipboard(codes.join("\n"), "Alle koder")}
+              aria-label="Kopiér alle adgangskoder til udklipsholder"
               className="rounded-md border border-border px-3 py-1.5 text-xs font-medium transition hover:bg-secondary"
             >
               Kopiér alle

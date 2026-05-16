@@ -52,7 +52,7 @@ export function BudgetSectionCard({
             type="button"
             onClick={onRemoveSection}
             aria-label={`Fjern sektionen ${section.name}`}
-            className="shrink-0 rounded-md p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-destructive"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-secondary hover:text-destructive"
           >
             <TrashIcon />
           </button>
@@ -82,7 +82,7 @@ export function BudgetSectionCard({
                 }
                 placeholder="0"
                 aria-label={`Beløb for ${row.label || "post"}`}
-                className="w-28 rounded-md border border-border bg-background px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-ring"
+                className="w-20 rounded-md border border-border bg-background px-2 py-1.5 text-right text-sm tabular-nums outline-none focus:border-ring sm:w-28"
               />
               <span className="text-xs text-muted-foreground">kr</span>
             </div>
@@ -90,7 +90,7 @@ export function BudgetSectionCard({
               type="button"
               onClick={() => onRemoveRow(row.id)}
               aria-label={`Fjern ${row.label || "post"}`}
-              className="shrink-0 rounded-md p-1.5 text-muted-foreground transition hover:bg-secondary hover:text-destructive"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-secondary hover:text-destructive"
             >
               <TrashIcon />
             </button>
