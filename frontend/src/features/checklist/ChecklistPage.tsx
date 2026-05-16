@@ -68,7 +68,7 @@ export function ChecklistPage() {
 
       <section
         aria-label="Fremgang"
-        className="sticky top-16 z-10 rounded-xl border border-border bg-card/95 p-5 shadow-sm backdrop-blur"
+        className="sticky top-14 z-10 rounded-xl border border-border bg-card/95 p-5 shadow-sm backdrop-blur sm:top-16"
       >
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-sm font-medium text-muted-foreground">Fremgang</p>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { ChecklistPhase } from "../../domain/checklistTemplate";
 
 interface Props {
@@ -87,6 +87,8 @@ interface RowProps {
 
 function ChecklistRow({ item, onToggle, onNote, onRemove }: RowProps) {
   const [showNote, setShowNote] = useState(Boolean(item.note));
+  const noteId = useId();
+  const noteVisible = showNote || Boolean(item.note);
 
   return (
     <li className="flex flex-col gap-2 px-5 py-3">
@@ -133,9 +135,11 @@ function ChecklistRow({ item, onToggle, onNote, onRemove }: RowProps) {
             <button
               type="button"
               onClick={() => setShowNote((v) => !v)}
+              aria-expanded={noteVisible}
+              aria-controls={noteId}
               className="text-muted-foreground transition hover:text-foreground"
             >
-              {showNote || item.note ? "Skjul note" : "+ note"}
+              {noteVisible ? "Skjul note" : "+ note"}
             </button>
             {item.custom && (
               <button
@@ -149,8 +153,9 @@ function ChecklistRow({ item, onToggle, onNote, onRemove }: RowProps) {
           </div>
         </div>
       </div>
-      {(showNote || item.note) && (
+      {noteVisible && (
         <textarea
+          id={noteId}
           value={item.note ?? ""}
           onChange={(e) => onNote(e.target.value)}
           placeholder="Skriv en note…"

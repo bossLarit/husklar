@@ -1,5 +1,6 @@
 import type { LoanResult as LoanResultType } from "../../domain/entities/loan";
 import { formatDKK } from "@/core/utils/formatCurrency";
+import { CheckCircleIcon, XCircleIcon } from "@/components/icons";
 
 interface LoanResultProps {
   result: LoanResultType;
@@ -17,7 +18,7 @@ export function LoanResult({ result, propertyPrice, savings }: LoanResultProps) 
       {/* Main result */}
       <div className="rounded-xl border border-border bg-card p-6">
         <h2 className="mb-4 text-lg font-semibold">Dit lån</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ResultItem
             label="Lånebeløb"
             value={formatDKK(loanAmount)}
@@ -49,6 +50,7 @@ export function LoanResult({ result, propertyPrice, savings }: LoanResultProps) 
 
       {/* Stress test */}
       <div
+        role="status"
         className={`rounded-xl border p-6 ${
           result.stressTestPasses
             ? "border-risk-green/30 bg-risk-green/5"
@@ -56,11 +58,11 @@ export function LoanResult({ result, propertyPrice, savings }: LoanResultProps) 
         }`}
       >
         <div className="flex items-start gap-3">
-          <div
-            className={`mt-0.5 h-5 w-5 flex-shrink-0 rounded-full ${
-              result.stressTestPasses ? "bg-risk-green" : "bg-risk-red"
-            }`}
-          />
+          {result.stressTestPasses ? (
+            <CheckCircleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-risk-green" />
+          ) : (
+            <XCircleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-risk-red" />
+          )}
           <div>
             <h2 className="font-semibold">
               {result.stressTestPasses
